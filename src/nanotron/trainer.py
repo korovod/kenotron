@@ -171,7 +171,7 @@ class DistributedTrainer:
         try:
             self.checkpoint_engine = create_checkpoint_engine_class(self.checkpoint_engine_type)(
                 # TODO @tbouvier: make it generic to all checkpointing engines
-                config=asdict(self.config.datastates) if self.config.datastates else None
+                config=asdict(self.config.checkpoints.datastates) if self.config.checkpoints and self.config.checkpoints.datastates else None
             )
         except ImportError as e:
             log_rank(

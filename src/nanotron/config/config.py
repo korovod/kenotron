@@ -172,6 +172,7 @@ class CheckpointsArgs:
     checkpoints_path: Path
     checkpoint_interval: int
     checkpointing_engine: Union[str, CheckpointingEngineType] = CheckpointingEngineType.TORCH
+    datastates: Optional[DataStatesArgs] = None
     save_initial_state: Optional[bool] = False
     save_final_state: Optional[bool] = False
     resume_checkpoint_path: Optional[xPath] = None
@@ -368,7 +369,6 @@ class Config:
     model: ModelArgs
     tokenizer: TokenizerArgs
     checkpoints: Optional[CheckpointsArgs] = None
-    datastates: Optional[DataStatesArgs] = None
     logging: Optional[LoggingArgs] = None
     tokens: Optional[TokensArgs] = None
     optimizer: Optional[OptimizerArgs] = None

@@ -33,11 +33,11 @@ class CheckpointEngine(ABC):
         pass
 
     @abstractmethod
-    def load_unsafe(self, path: Path, map_location: Optional[str] = None) -> None:
+    def load_unsafe(self, path: Path, map_location: Optional[str] = None) -> Any:
         pass
 
     @abstractmethod
-    def load(self, path: Path, framework="pt", device="cpu") -> None:
+    def load(self, path: Path, framework="pt", device="cpu") -> Any:
         pass
 
     @abstractmethod
@@ -63,11 +63,11 @@ class TorchCheckpointEngine(CheckpointEngine):
         else:
             self._save_unsafe(state_dict, path)
 
-    def load_unsafe(self, path: Path, map_location: Optional[str] = None) -> None:
+    def load_unsafe(self, path: Path, map_location: Optional[str] = None) -> Any:
         logger.debug(f"Loading checkpoint from {path}...")
         return torch.load(path, map_location=map_location)
 
-    def load(self, path: Path, framework="pt", device: str = "cpu") -> None:
+    def load(self, path: Path, framework="pt", device: str = "cpu") -> Any:
         logger.debug(f"Loading checkpoint from {path}...")
         with safe_open(path, framework, device=device) as fi:
             return fi.get_tensor("data")
@@ -199,11 +199,11 @@ class DataStatesCheckpointEngine(CheckpointEngine):
             f.seek(_start_tensor_offset + metadata_size)
             f.write(lean_state_dict)
 
-    def load_unsafe(self, path: Path, map_location: Optional[str] = None) -> None:
+    def load_unsafe(self, path: Path, map_location: Optional[str] = None) -> Any:
         logger.debug(f"Loading checkpoint from {path}...")
         return torch.load(path, map_location=map_location)
 
-    def load(self, path: Path, framework="pt", device: str = "cpu") -> None:
+    def load(self, path: Path, framework="pt", device: str = "cpu") -> Any:
         try:
             version = 0
             f = open(path, 'rb')
@@ -221,7 +221,7 @@ class DataStatesCheckpointEngine(CheckpointEngine):
             data = pickle.loads(f.read(end_offset - start_offset))
 
             try:
-                restore_list = []
+                #restore_list = []
 
                 for k, v in header.items():
                     split_k = deque(k.split(KEY_SEPARATOR))
@@ -243,29 +243,31 @@ class DataStatesCheckpointEngine(CheckpointEngine):
                     if dest != f"TENSOR{KEY_SEPARATOR}{k}":
                         raise Exception(f"[DataStates] The key in header {k} does not match key at location {dest}")
 
-                    tensor_restored = torch.zeros(size=tuple(shape), dtype=getattr(torch, dtype))
-                    restore_list.append((version, tensor_restored, start_offset, str(path)))
+                    #tensor_restored = torch.zeros(size=tuple(shape), dtype=getattr(torch, dtype))
+                    #restore_list.append((version, tensor_restored, start_offset, str(path)))
 
                     f.seek(start_offset)
                     buffer = f.read(end_offset - start_offset)
                     tensor_restored = torch.frombuffer(buffer, dtype=getattr(torch, dtype)).reshape(tuple(shape))
                     pre_dest[sub_k] = tensor_restored
 
-                self.engine.load(restore_list)
+                #self.engine.load(restore_list)
 
             except Exception as exc:
                 raise Exception(f"[DataStates] Got error with tensor loading {dtype}, {shape}, {exc}")
-                self.logger.info(f"[DataStates] Loaded checkpoint from {path}.")
-                return data
+
+            logger.debug(f"[DataStates] Loaded checkpoint from {path}")
+            return data["data"]
 
         except Exception as exc:
-            logger.error(f"[DataStates][ERROR] Could not load {path}, exception: {exc}")
+            logger.error(f"[DataStates] Could not load {path}, exception: {exc}")
 
     def wait(self) -> None:
-        return self.engine.wait()
+        return self.engine.wait() if self.engine is not None else True
 
     def __del__(self) -> None:
         if self.engine is not None:
+            self.wait()
             return self.engine.shutdown()
 
 

@@ -303,7 +303,7 @@ def load_weights(
 
             if path.exists():
                 # TODO @thomasw21: Choose only a slice if we switch the TP topology
-                 param_or_buffer[:] = checkpoint_engine.load(path, framework="pt", device=str(param.device))
+                param_or_buffer[:] = checkpoint_engine.load(path, framework="pt", device=str(param.device))
 
             elif not path.parent.exists():
                 raise ValueError(

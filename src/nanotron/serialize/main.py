@@ -136,7 +136,7 @@ def save(
         checkpoint_engine_version=checkpoint_engine.CHECKPOINT_VERSION,
         root_folder=root_folder,
         parallel_context=parallel_context,
-        training_metadata=training_metadata
+        training_metadata=training_metadata,
     )
 
     # TODO @thomas21: sanity check, not sure whether that needs to happen at testing or now (depends how much it costs)

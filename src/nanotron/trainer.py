@@ -159,14 +159,14 @@ class DistributedTrainer:
             expert_parallel_size=self.config.parallelism.expert_parallel_size,
         )
 
-        self.pre_init()
-
         # Set log levels
         set_ranks_logging_level(parallel_context=self.parallel_context, logging_config=self.config.logging)
 
         # Log benchmark info
         if os.environ.get("NANOTRON_BENCHMARK", "0") == "1":
             log_throughput(self.config, self.parallel_context)
+
+        self.pre_init()
 
         try:
             self.checkpoint_engine = create_checkpoint_engine_class(self.checkpoint_engine_type)(
@@ -243,7 +243,7 @@ class DistributedTrainer:
         # Define iteration start state
         if self.init_checkpoint_path is not None and self.config.checkpoints.load_lr_scheduler:
             checkpoint_metadata = load_meta(
-                checkpoint_engine_type=get_checkpoint_engine_type_from_instance(self.checkpoint_engine),
+                checkpoint_engine_type=self.checkpoint_engine_type,
                 checkpoint_engine_version=self.checkpoint_engine.CHECKPOINT_VERSION,
                 parallel_context=self.parallel_context,
                 root_folder=self.init_checkpoint_path

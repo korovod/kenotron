@@ -17,7 +17,8 @@
 Nanotron is a library for pretraining transformer models. It provides a simple and flexible API to pretrain models on custom datasets. Nanotron is designed to be easy to use, fast, and scalable. It is built with the following principles in mind:
 
 - **Simplicity**: Nanotron is designed to be easy to use. It provides a simple and flexible API to pretrain models on custom datasets.
-- **Performance**: Optimized for speed and scalability, Nanotron uses the latest techniques to train models faster and more efficiently.
+- **Scalability**: Optimized for speed and scalability, Nanotron uses the latest techniques to train models faster and more efficiently.
+- **Performance**: This version of Nanotron focused on HPC-oriented optimizations, typically made available via C++ extensions.
 
 ## Installation
 
@@ -104,7 +105,12 @@ And we have on our roadmap:
 - [ ] `torch.compile` support
 - [ ] Ring attention
 - [ ] Interleaved 1f1b schedule
+- [ ] Asynchronous checkpointing
+- [ ] Interleaved offloading of parameters
+- [ ] Efficient expert parallelism
 
 ## Credits
 
-We would like to thank everyone working on LLMs, especially those sharing their work openly from which we took great inspiration: Nvidia for `Megatron-LM/apex`, Microsoft for `DeepSpeed`, HazyResearch for `flash-attn`..
+We thank the Hugging Face team for their work on the [original project](https://github.com/huggingface/nanotron).
+
+We would like to thank everyone working on LLMs, especially those sharing their work openly from which we took great inspiration: Nvidia for `Megatron-LM/apex`, Microsoft for `DeepSpeed`, HazyResearch for `flash-attn`.

@@ -162,6 +162,8 @@ class CheckpointsArgs:
     load_lr_scheduler: Optional[bool] = True
     load_optimizer: Optional[bool] = True
     checkpoints_path_is_shared_file_system: Optional[bool] = False
+    load_lr_scheduler: Optional[bool] = True
+    load_optimizer: Optional[bool] = True
 
     def __post_init__(self):
         if isinstance(self.checkpoints_path, str):

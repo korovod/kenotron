@@ -17,8 +17,8 @@
 Nanotron is a library for pretraining transformer models. It provides a simple and flexible API to pretrain models on custom datasets. Nanotron is designed to be easy to use, fast, and scalable. It is built with the following principles in mind:
 
 - **Simplicity**: Nanotron is designed to be easy to use. It provides a simple and flexible API to pretrain models on custom datasets.
-- **Scalability**: Optimized for speed and scalability, Nanotron uses the latest techniques to train models faster and more efficiently.
-- **Performance**: This version of Nanotron focused on HPC-oriented optimizations, typically made available via C++ extensions.
+- **Scalability**: Nanotron uses the latest techniques to train models more efficiently at scale.
+- **Speed**: This version of Nanotron focuses on HPC-oriented optimizations, typically made available via C++ extensions.
 
 ## Installation
 
@@ -51,6 +51,12 @@ pip install triton "flash-attn>=2.5.0" --no-build-isolation
 > We log to wandb automatically if it's installed. For that you can use `pip install wandb`. If you don't want to use wandb, you can run `wandb disabled`.
 
 ## Quick Start
+
+First, have a look at the **[Ultrascale Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)**, a comprehensive guide to efficiently scale LLM training with Nanotron.
+
+### Predicting the memory that you will need
+
+A good starting point is to understand the memory usage from model configurations. The Nanotron team created [a tool](https://huggingface.co/spaces/nanotron/predict_memory) for this purpose. Just paste your YAML configuration to generate memory diagrams.
 
 ### Training a tiny Llama model
 

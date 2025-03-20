@@ -103,16 +103,18 @@ We currently support the following features:
 - [x] Custom module checkpointing for large models
 - [x] Spectral µTransfer parametrization for scaling up neural networks
 - [x] Mamba example
+- [x] Asynchronous checkpointing
 
 And we have on our roadmap:
 
+- [ ] Data-parallel checkpointing for reducing I/O pressure
 - [ ] FP8 training
+- [ ] Bucketed ZeRO-1
 - [ ] ZeRO-3 optimizer (a.k.a FSDP)
 - [ ] `torch.compile` support
 - [ ] Ring attention
 - [ ] Interleaved 1f1b schedule
-- [ ] Asynchronous checkpointing
-- [ ] Interleaved offloading of parameters
+- [ ] Interleaved offloading of ZeRO states
 - [ ] Efficient expert parallelism
 
 ## Credits

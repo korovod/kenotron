@@ -61,6 +61,8 @@ CUDA_DEVICE_MAX_CONNECTIONS=1 python -m torch.distributed.run --nproc_per_node=8
 
 For detailed instructions on training your first model, check out our [Your First Training guide](docs/your-first-training.md).
 
+For multi-node training with Slurm, see our [Multi-Node Training guide](docs/multi-node-training.md).
+
 ### Run generation from your checkpoint
 
 ```bash

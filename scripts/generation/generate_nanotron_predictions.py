@@ -8,7 +8,7 @@ from pathlib import Path
 import nanotron.distributed as dist
 import numpy as np
 import torch
-from nanotron.config import Config, ParallelismArgs, get_config_from_file
+from nanotron.config import Config, ParallelismArgs, CheckpointsArgs, get_config_from_file
 from nanotron.models import build_model
 from nanotron.models.llama import LlamaForTraining
 from nanotron.parallel import ParallelContext
@@ -16,6 +16,11 @@ from nanotron.parallel.parameters import sanity_check
 from nanotron.parallel.pipeline_parallel.engine import AllForwardAllBackwardPipelineEngine
 from nanotron.parallel.tensor_parallel.nn import TensorParallelLinearMode
 from nanotron.serialize import load_weights
+from nanotron.serialize.engine import (
+    TorchCheckpointEngine,
+    DataStatesCheckpointEngine,
+    create_checkpoint_engine_class,
+)
 from nanotron.trainer import mark_tied_parameters
 from sklearn.metrics import accuracy_score
 from transformers import AutoTokenizer
@@ -29,12 +34,20 @@ TORCH_DTYPE = torch.bfloat16
 
 def get_args():
     parser = argparse.ArgumentParser()
+
     group = parser.add_argument_group(title="Nanotron Model")
     group.add_argument(
         "--nanotron-checkpoint-path",
         type=str,
         required=True,
         help="A path to a directory containing a Nanotron Checkpoint",
+    )
+    group.add_argument(
+        "--checkpointing-engine",
+        type=str,
+        default="torch",
+        required=False,
+        help="The checkpointing engine to use (default: torch)",
     )
 
     group = parser.add_argument_group(title="Nanotron Parallelism")
@@ -66,6 +79,12 @@ def main(args):
         tensor_parallel_size=parallel_config.tp,
     )
 
+    # Checkpointing config
+    checkpointing_config = CheckpointsArgs(
+        checkpoints_path=args.nanotron_checkpoint_path,
+        checkpointing_engine=args.checkpointing_engine,
+    )
+
     RANK = dist.get_rank(parallel_context.world_pg)
 
     nanotron_config = get_config_from_file(
@@ -87,8 +106,17 @@ def main(args):
     mark_tied_parameters(model=model, parallel_context=parallel_context)
     sanity_check(root_module=model)
 
+    # Create Checkpointing engine
+    checkpoint_engine_type = checkpointing_config.checkpointing_engine
+    checkpoint_engine = create_checkpoint_engine_class(checkpoint_engine_type)()
+
     # Load checkpoint directly in memory and then only keep the state dictionary
-    load_weights(model=model, parallel_context=parallel_context, root_folder=Path(args.nanotron_checkpoint_path))
+    load_weights(
+        model=model,
+        parallel_context=parallel_context,
+        root_folder=Path(args.nanotron_checkpoint_path),
+        checkpoint_engine=checkpoint_engine,
+    )
 
     tokenizer = AutoTokenizer.from_pretrained(nanotron_config.tokenizer.tokenizer_name_or_path)
     tokens = tokenizer(TXT, return_tensors="pt", truncation=True, max_length=(SEQ_LENGTH + 1))["input_ids"].to(DEVICE)

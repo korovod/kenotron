@@ -9,7 +9,15 @@ from pathlib import Path
 import torch
 import yaml
 from nanotron import logging
-from nanotron.config import Config, GeneralArgs, LoggingArgs, ModelArgs, ParallelismArgs, TokenizerArgs
+from nanotron.config import (
+    Config,
+    GeneralArgs,
+    LoggingArgs,
+    ModelArgs,
+    ParallelismArgs,
+    TokenizerArgs,
+    CheckpointsArgs,
+)
 from nanotron.config.models_config import ExistingCheckpointInit
 from nanotron.config.models_config import LlamaConfig as LlamaConfigNanotron
 from nanotron.logging import log_rank, set_ranks_logging_level
@@ -18,6 +26,11 @@ from nanotron.models.llama import LlamaForTraining
 from nanotron.parallel import ParallelContext
 from nanotron.parallel.parameters import sanity_check
 from nanotron.serialize import TrainingMetadata, save_meta, save_weights
+from nanotron.serialize.engine import (
+    TorchCheckpointEngine,
+    DataStatesCheckpointEngine,
+    create_checkpoint_engine_class,
+)
 from nanotron.serialize.metadata import DataStageMetadata
 from nanotron.trainer import mark_tied_parameters
 from tqdm import tqdm
@@ -31,12 +44,20 @@ TORCH_DTYPE = torch.bfloat16
 
 def get_args():
     parser = argparse.ArgumentParser()
+
     group = parser.add_argument_group(title="Nanotron Model")
     group.add_argument(
         "--nanotron-checkpoint-path",
         type=str,
         required=True,
         help="A path to a directory to store the converted Nanotron Checkpoint",
+    )
+    group.add_argument(
+        "--checkpointing-engine",
+        type=str,
+        default="torch",
+        required=False,
+        help="The checkpointing engine to use (default: torch)",
     )
 
     group = parser.add_argument_group(title="HuggingFace Model")
@@ -60,6 +81,12 @@ def main(args):
         data_parallel_size=parallel_config.dp,
         pipeline_parallel_size=parallel_config.pp,
         tensor_parallel_size=parallel_config.tp,
+    )
+
+    # Checkpointing config
+    checkpointing_config = CheckpointsArgs(
+        checkpoints_path=args.nanotron_checkpoint_path,
+        checkpointing_engine=args.checkpointing_engine,
     )
 
     set_ranks_logging_level(parallel_context=parallel_context, logging_config=LoggingArgs())
@@ -208,9 +235,19 @@ def main(args):
         nanotron_model.model.lm_head.pp_block.weight.copy_(hf_model.lm_head.weight)
 
     log_rank("Copied weights from HF model to Nanotron model!", logger=logger, level=logging.INFO, rank=0)
+
+    # Create Checkpointing engine
+    checkpoint_engine_type = checkpointing_config.checkpointing_engine
+    checkpoint_engine = create_checkpoint_engine_class(checkpoint_engine_type)()
+
     # Store weights
     nanotron_checkpoint_path = Path(args.nanotron_checkpoint_path)
-    save_weights(model=nanotron_model, parallel_context=parallel_context, root_folder=nanotron_checkpoint_path)
+    save_weights(
+        model=nanotron_model,
+        parallel_context=parallel_context,
+        root_folder=nanotron_checkpoint_path,
+        checkpoint_engine=checkpoint_engine,
+    )
 
     # Store metadata
     log_rank("Storing Nanotron model Configs and Metadata!", logger=logger, level=logging.INFO, rank=0)
@@ -220,7 +257,11 @@ def main(args):
         data_stages=[DataStageMetadata(name="Empty", consumed_train_samples=0, start_training_step=0)],
     )
     save_meta(
-        root_folder=nanotron_checkpoint_path, parallel_context=parallel_context, training_metadata=training_metadata
+        checkpoint_engine_type=checkpoint_engine_type,
+        checkpoint_engine_version=checkpoint_engine.CHECKPOINT_VERSION,
+        root_folder=nanotron_checkpoint_path,
+        parallel_context=parallel_context,
+        training_metadata=training_metadata,
     )
     # Store Tokenizer into Nanotron Checkpoint folder
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained_model_name_or_path)

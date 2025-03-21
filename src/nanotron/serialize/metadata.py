@@ -9,10 +9,10 @@ from dacite import from_dict
 from packaging.version import Version
 
 from nanotron import distributed as dist
-from nanotron.constants import CHECKPOINT_FILE_NAME, CHECKPOINT_VERSION
+from nanotron.config import CheckpointingEngineType
+from nanotron.constants import CHECKPOINT_FILE_NAME
 from nanotron.parallel import ParallelContext
 from nanotron.parallel.parameters import SlicesPair
-
 
 @dataclasses.dataclass
 class DataStageMetadata:
@@ -60,6 +60,7 @@ class TrainingMetadata:
 
 @dataclasses.dataclass
 class CheckpointMetadata:
+    checkpointing_engine_type: CheckpointingEngineType
     version: Version
     tp: int
     dp: int
@@ -73,9 +74,9 @@ class TensorMetadata:
     version: Version
     # Anything users want to store
     # Info of to what slice of the unsharded tensor (global_slices) the current sharded tensor corresponds (local_slices)
-    local_global_slices_pairs: Tuple[SlicesPair, ...]
+    local_global_slices_pairs: Optional[Tuple[SlicesPair, ...]] = None
     # The shape of the unsharded tensor
-    unsharded_shape: Tuple[int, ...]
+    unsharded_shape: Optional[Tuple[int, ...]] = None
 
     _metadata_config: ClassVar[dacite.Config] = dacite.Config(
         cast=[Version],
@@ -89,9 +90,11 @@ class TensorMetadata:
     def to_str_dict(self) -> Dict[str, str]:
         return {
             "version": str(self.version),
-            "local_global_slices_pairs": SlicesPair.tuple_to_str(self.local_global_slices_pairs),
-            "unsharded_shape": str(tuple(self.unsharded_shape)),
         }
+        if self.local_global_slices_pairs is not None:
+            result["local_global_slices_pairs"] = SlicesPair.tuple_to_str(self.local_global_slices_pairs)
+        if self.unsharded_shape is not None:
+            result["unsharded_shape"] = str(tuple(self.unsharded_shape))
 
     @classmethod
     def from_str_dict(cls, dictionary: Dict[str, str]) -> "TensorMetadata":
@@ -125,7 +128,7 @@ def to_list(list_: Union[List, Tuple], type_hooks: Dict[Type, Callable[[Any], An
     return list_.__class__((process_type(elt, type_hooks=type_hooks) for elt in list_))
 
 
-def save_meta(parallel_context: ParallelContext, root_folder: Path, training_metadata: TrainingMetadata):
+def save_meta(checkpoint_engine_type: CheckpointingEngineType, checkpoint_engine_version: Version, parallel_context: ParallelContext, root_folder: Path, training_metadata: TrainingMetadata):
     assert isinstance(training_metadata, TrainingMetadata)
 
     if dist.get_rank(parallel_context.world_pg) != 0:
@@ -133,7 +136,8 @@ def save_meta(parallel_context: ParallelContext, root_folder: Path, training_met
 
     root_folder.mkdir(exist_ok=True, parents=True)
     checkpoint_metadata = CheckpointMetadata(
-        version=CHECKPOINT_VERSION,
+        checkpointing_engine_type=checkpoint_engine_type,
+        version=checkpoint_engine_version,
         tp=parallel_context.tp_pg.size(),
         dp=parallel_context.dp_pg.size(),
         metas=training_metadata,
@@ -146,18 +150,21 @@ def save_meta(parallel_context: ParallelContext, root_folder: Path, training_met
         json.dump(processed_metadata, fo, indent=2, sort_keys=True)
 
 
-def load_meta(parallel_context: ParallelContext, root_folder: Path) -> CheckpointMetadata:
+def load_meta(checkpoint_engine_type: CheckpointingEngineType, checkpoint_engine_version: Version, parallel_context: ParallelContext, root_folder: Path) -> CheckpointMetadata:
     with open(root_folder / CHECKPOINT_FILE_NAME, mode="r") as fi:
         checkpoint_metadata = json.load(fi)
         checkpoint_metadata = from_dict(
             data_class=CheckpointMetadata,
             data=checkpoint_metadata,
             config=dacite.Config(
-                cast=[Version],
+                cast=[CheckpointingEngineType, Version],
             ),
         )
-        # Assume that we're always backward compatible, we only increment CHECKPOINT_VERSION when there's a breaking change.
         assert (
-            checkpoint_metadata.version <= CHECKPOINT_VERSION
-        ), f"Checkpoint is of version {checkpoint_metadata.version}, Current `nanotron` checkpoint version is {CHECKPOINT_VERSION}"
+            checkpoint_metadata.checkpointing_engine_type == checkpoint_engine_type
+        ), f"Checkpoint has been saved using {checkpoint_metadata.checkpointing_engine_type}, Current checkpoint engine is {checkpoint_engine_type}"
+        # Assume that we're always backward compatible, we only increment CheckpointEngine.CHECKPOINT_VERSION when there's a breaking change.
+        assert (
+            checkpoint_metadata.version <= checkpoint_engine_version
+        ), f"Checkpoint is of version {checkpoint_metadata.version}, Current `nanotron` checkpoint version is {checkpoint_engine_version}"
     return checkpoint_metadata

@@ -149,7 +149,7 @@ class Qwen2Attention(nn.Module):
             self.q_size + 2 * self.kv_size,
             pg=tp_pg,
             mode=tp_mode,
-            bias=True,  # Qwen2 uses bias for QKV
+            bias=config.attention_bias,  # Qwen2 uses bias for QKV, Llama doesn't
             async_communication=tp_linear_async_communication,
             contiguous_chunks=qkv_contiguous_chunks,
             tp_recompute_allgather=parallel_config.tp_recompute_allgather,
@@ -159,7 +159,7 @@ class Qwen2Attention(nn.Module):
             self.hidden_size,
             pg=tp_pg,
             mode=tp_mode,
-            bias=False,  # Qwen2 doesn't use bias for output projection
+            bias=False,
             async_communication=tp_linear_async_communication,
         )
         self.rotary_emb = RotaryEmbedding(
@@ -287,7 +287,7 @@ class Qwen2DecoderLayer(nn.Module):
         self.hidden_size = config.hidden_size
 
         self.input_layernorm = RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
-        self.self_attn = Qwen2Attention(
+        self.attn = Qwen2Attention(
             config=config,
             parallel_config=parallel_config,
             tp_pg=tp_pg,
@@ -310,7 +310,7 @@ class Qwen2DecoderLayer(nn.Module):
         residual = hidden_states
         hidden_states = self.input_layernorm(hidden_states)
 
-        output = self.self_attn(hidden_states=hidden_states, position_ids=position_ids)
+        output = self.attn(hidden_states=hidden_states, position_ids=position_ids)
         hidden_states = output["hidden_states"]
         hidden_states = hidden_states + residual
 
@@ -347,7 +347,7 @@ class Qwen2DecoderLayer(nn.Module):
 class Embedding(nn.Module):
     def __init__(self, tp_pg: dist.ProcessGroup, config: Qwen2Config, parallel_config: Optional[ParallelismArgs]):
         super().__init__()
-        self.embed_tokens = TensorParallelEmbedding(
+        self.token_embedding = TensorParallelEmbedding(
             num_embeddings=config.vocab_size,
             embedding_dim=config.hidden_size,
             padding_idx=config.pad_token_id,
@@ -357,7 +357,7 @@ class Embedding(nn.Module):
         self.pg = tp_pg
 
     def forward(self, input_ids: torch.Tensor, position_ids: torch.Tensor):  # [batch_size, seq_length]
-        input_embeds = self.embed_tokens(input_ids)
+        input_embeds = self.token_embedding(input_ids)
         input_embeds = input_embeds.view(-1, input_embeds.shape[-1])  # [batch_size*seq_length, hidden_size]
         return {"input_embeds": input_embeds, "position_ids": position_ids}
 
@@ -383,7 +383,7 @@ class Qwen2Model(nn.Module):
             parallel_config.tp_linear_async_communication if parallel_config is not None else False
         )
 
-        self.embed_tokens = PipelineBlock(
+        self.token_position_embeddings = PipelineBlock(
             p2p=self.p2p,
             module_builder=Embedding,
             module_kwargs={
@@ -446,7 +446,7 @@ class Qwen2Model(nn.Module):
         input_ids: Union[torch.Tensor, TensorPointer],  # [batch_size, seq_length]
         position_ids: Union[torch.Tensor, TensorPointer],  # [batch_size, seq_length] where -1 is padding
     ):
-        output = self.embed_tokens(input_ids=input_ids, position_ids=position_ids)
+        output = self.token_position_embeddings(input_ids=input_ids, position_ids=position_ids)
         decoder_states = {
             "hidden_states": output["input_embeds"],
             "position_ids": output["position_ids"],
@@ -630,7 +630,7 @@ class Qwen2ForTraining(NanotronModel):
         """Get the names of the tied embeddings and lm_head weights"""
         if self.config.tie_word_embeddings is True:
             # Should be similar to ["model.token_position_embeddings.pp_block.token_embedding.weight", "model.lm_head.pp_block.weight"]
-            return ["model.embed_tokens.pp_block.embed_tokens.weight", "model.lm_head.pp_block.weight"]
+            return ["model.token_position_embeddings.pp_block.token_embedding.weight", "model.lm_head.pp_block.weight"]
         else:
             return []
 

@@ -170,8 +170,9 @@ class DistributedTrainer:
 
         try:
             self.checkpoint_engine = create_checkpoint_engine_class(self.checkpoint_engine_type)(
+                self.parallel_context,
                 # TODO @tbouvier: make it generic to all checkpointing engines
-                config=asdict(self.config.checkpoints.datastates) if self.config.checkpoints and self.config.checkpoints.datastates else None
+                config=asdict(self.config.checkpoints.datastates) if self.config.checkpoints and self.config.checkpoints.datastates else None,
             )
         except ImportError as e:
             log_rank(
@@ -180,8 +181,11 @@ class DistributedTrainer:
                 level=logging.ERROR,
                 rank=0,
             )
-            # TODO tbouvier: same
-            self.checkpoint_engine = TorchCheckpointEngine(config=asdict(self.config.datastates) if self.config.datastates else None)
+            # TODO @tbouvier: same
+            self.checkpoint_engine = TorchCheckpointEngine(
+                self.parallel_context,
+                config=asdict(self.config.datastates) if self.config.datastates else None,
+            )
 
         ########################################
         ## Setting up our model, optimizers, schedulers, etc.
@@ -777,7 +781,7 @@ class DistributedTrainer:
                 )
             reloaded_from_checkpoint = True
         if not reloaded_from_checkpoint:
-            log_rank("No checkpoint path provided.", logger=logger, level=logging.INFO, rank=0)
+            log_rank("No path for checkpoint to reload provided.", logger=logger, level=logging.INFO, rank=0)
             if isinstance(self.config.model.init_method, ExistingCheckpointInit):
                 # Initialize model from an pretrained model checkpoint (without optimizer, lr_scheduler...)
                 self.param_shard_metadata = load_weights(

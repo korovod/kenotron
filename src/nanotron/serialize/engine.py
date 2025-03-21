@@ -12,8 +12,11 @@ import pickle
 import torch
 from safetensors.torch import safe_open, save_file
 
+from nanotron import distributed as dist
 from nanotron import logging
 from nanotron.config import CheckpointingEngineType
+from nanotron.parallel import ParallelContext
+from nanotron.random import RandomStates
 from nanotron.serialize.metadata import TensorMetadata
 
 logger = logging.get_logger(__name__)
@@ -25,7 +28,8 @@ KEY_SEPARATOR = "|"
 class CheckpointEngine(ABC):
     CHECKPOINT_VERSION: Version
 
-    def __init__(self, config: Optional[dict] = None):
+    def __init__(self, parallel_context: ParallelContext, config: Optional[dict] = None):
+        self.parallel_context = parallel_context
         self.config = config
 
     @abstractmethod
@@ -49,8 +53,8 @@ class TorchCheckpointEngine(CheckpointEngine):
     CHECKPOINT_VERSION = Version("1.4")
     TENSOR_SUFFIX = "safetensors"
 
-    def __init__(self, config: Optional[Dict] = None):
-        self.config = config
+    def __init__(self, parallel_context: ParallelContext, config: Optional[Dict] = None):
+        super().__init__(parallel_context, config)
 
     def _save_unsafe(self, state_dict: Dict[str, Any], path: Path) -> None:
         torch.save(state_dict, path)
@@ -82,8 +86,8 @@ class DataStatesCheckpointEngine(CheckpointEngine):
 
     engine = None
 
-    def __init__(self, config: Optional[Dict] = None):
-        self.config = config
+    def __init__(self, parallel_context: ParallelContext, config: Optional[Dict] = None):
+        super().__init__(parallel_context, config)
 
         try:
             from datastates import CkptEngine
@@ -104,19 +108,20 @@ class DataStatesCheckpointEngine(CheckpointEngine):
         host_cache_size = int(merged_config["host_cache_size"] * (1 << 30)) # from GB to Bytes
 
         self.executor = ThreadPoolExecutor(max_workers=merged_config["parser_threads"])
-        self.last_ckpt_version = -1
-
         try:
-            # TODO tbouvier: the last parameter should be the rank
-            self.engine = CkptEngine(host_cache_size, int(torch.cuda.current_device()), 0)
+            self.engine = CkptEngine(
+                host_cache_size,
+                int(torch.cuda.current_device()), # local gpu id
+                dist.get_rank(self.parallel_context.world_pg), # global rank
+            )
         except Exception as e:
             raise Exception(f"[DataStates] Got an exception during DataStates init: {e}")
 
     def save(self, state_dict: Dict[str, Any], path: Path, metadata: Optional[TensorMetadata] = None) -> None:
         logger.debug(f"[DataStates] Saving checkpoint {path}...")
 
-        #if not isinstance(state_dict, (dict, OrderedDict, RandomStates)):
-        #    raise Exception(f"[DataStates] state_dict given to checkpoint must be a dictionary. Passed {type(state_dict)} instead for {path}.")
+        if not isinstance(state_dict, (dict, OrderedDict, RandomStates)):
+            raise Exception(f"[DataStates] state_dict given to checkpoint must be a dictionary. Passed {type(state_dict)} instead for {path}.")
 
         if metadata is not None:
             if "data" not in state_dict:

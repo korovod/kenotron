@@ -123,7 +123,7 @@ class MambaTrainer(DistributedTrainer):
             )
             reloaded_from_checkpoint = True
         if not reloaded_from_checkpoint:
-            log_rank("No checkpoint path provided.", logger=logger, level=logging.INFO)
+            log_rank("No path for checkpoint to reload provided.", logger=logger, level=logging.INFO)
             if isinstance(self.config.model.init_method, ExistingCheckpointInit):
                 # Initialize model from an pretrained model checkpoint
                 self.param_shard_metadata = load_weights(

@@ -218,6 +218,13 @@ class DistributedTrainer:
             optimizer_args=self.config.optimizer,
             parallel_context=self.parallel_context,
         )
+        # Init learning rate scheduler
+        self.lr_scheduler = lr_scheduler_builder(
+            optimizer=self.optimizer,
+            lr_scheduler_args=self.config.optimizer.learning_rate_scheduler,
+            total_training_steps=self.config.tokens.train_steps,
+        )
+
         if self.init_checkpoint_path is not None and self.config.checkpoints.load_optimizer:
             load_optimizer(
                 optimizer=self.optimizer,
@@ -228,13 +235,6 @@ class DistributedTrainer:
                 model=self.unwrapped_model,
                 map_location="cpu",
             )
-
-        # Init learning rate scheduler
-        self.lr_scheduler = lr_scheduler_builder(
-            optimizer=self.optimizer,
-            lr_scheduler_args=self.config.optimizer.learning_rate_scheduler,
-            total_training_steps=self.config.tokens.train_steps,
-        )
         if self.init_checkpoint_path is not None and self.config.checkpoints.load_lr_scheduler:
             load_lr_scheduler(
                 lr_scheduler=self.lr_scheduler,

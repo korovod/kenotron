@@ -32,23 +32,17 @@ cd spack/bin
 ./spack install py-nanotron
 ```
 
-Alternatively, use the good old pip as follows:
+> [!TIP]
+> It is advised to maintain a proper [Spack environment](https://spack-tutorial.readthedocs.io/en/latest/tutorial_environments.html) to ensure reproducibility.
+
+To install a C++ extension, simply use the corresponding Spack variant:
 
 ```bash
-# Requirements: Python>=3.10,<3.12
-git clone https://github.com/korovod/nanotron
-cd nanotron
-pip install --upgrade pip
-pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu121
-pip install -e .
-
-# Install dependencies if you want to use the example scripts
-pip install datasets transformers
-pip install triton "flash-attn>=2.5.0" --no-build-isolation
+./spack install py-nanotron +py-datastates
 ```
 
 > [!TIP]
-> We log to wandb automatically if it's installed. For that you can use `pip install wandb`. If you don't want to use wandb, you can run `wandb disabled`.
+> We log to wandb automatically if it's installed (and the command above will install it). If you don't want to use wandb, you can run `wandb disabled`.
 
 ## Quick Start
 
@@ -88,7 +82,6 @@ You can find more examples in the [`/examples`](/examples) directory:
 
 We're working on adding more examples soon! Feel free to add a PR to add your own example. 🚀
 
-
 ## Features
 
 We currently support the following features:
@@ -117,8 +110,18 @@ And we have on our roadmap:
 - [ ] Interleaved offloading of ZeRO states
 - [ ] Efficient expert parallelism
 
+## Models
+
+The following models are currently supported:
+
+- Mistral 7B
+- Qwen
+- Llama 3.2
+- Llama 3.1
+- StarCoder2
+
 ## Credits
 
 We thank the Hugging Face team for their work on the [original project](https://github.com/huggingface/nanotron).
 
-We would like to thank everyone working on LLMs, especially those sharing their work openly from which we took great inspiration: Nvidia for `Megatron-LM/apex`, Microsoft for `DeepSpeed`, HazyResearch for `flash-attn`.
+We would like to thank everyone working on LLMs, especially those sharing their work openly from which we took great inspiration: Nvidia for `Megatron-LM/apex`, Microsoft for `DeepSpeed`, HazyResearch for `flash-attn`, ANL for `datastates`.

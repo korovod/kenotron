@@ -107,7 +107,7 @@ dataset_index = [1, 2, 0, 1, 3, 1, 2, 1, 2, 1, 0, 1, 2, 1, 3, 1, 2, 1, 2, 1]
 dataset_index =         [1, 2, 0, 1, 3, 1, 2, 1, 2, 1, 0, 1, 2, 1, 3, 1, 2, 1, 2, 1]
 dataset_sample_index =  [0, 0, 0, 1, 0, 0, 1, 1, 2, 0, 1, 1, 3, 0, 1, 1, 4, 0, 0, 1]
 ```
-Then, we **shuffle with the same permutation both indexes** and concatenate them `number of epochs` times, which is defined by `train split num samples` / `number of samples per epoch`.
+Then, we **shuffle both indexes with the same permutation** for a given epoch and repeat this process, concatenating the resulting indexes `number of epochs` times (defined by `train split num samples` / `number of samples per epoch`).
 ```
 Given:
 

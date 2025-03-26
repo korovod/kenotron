@@ -17,6 +17,7 @@ from nanotron.config import (
     RandomInit,
     TokenizerArgs,
     TokensArgs,
+    AdamWOptimizerArgs,
 )
 from nanotron.logging import human_format
 
@@ -58,14 +59,16 @@ learning_rate = LRSchedulerArgs(
 )
 
 optimizer = OptimizerArgs(
+    optimizer_factory=AdamWOptimizerArgs(
+        adam_eps=1e-08,
+        adam_beta1=0.9,
+        adam_beta2=0.95,
+        torch_adam_is_fused=True,
+    ),
     zero_stage=0,
     weight_decay=0.01,
     clip_grad=1.0,
     accumulate_grad_in_fp32=True,
-    adam_eps=1e-08,
-    adam_beta1=0.9,
-    adam_beta2=0.95,
-    torch_adam_is_fused=True,
     learning_rate_scheduler=learning_rate,
 )
 

@@ -80,6 +80,7 @@ def _compute_llama3_parameters(config: LlamaConfig) -> Tuple["torch.Tensor", flo
     # Gets the default RoPE parameters
     inv_freq = _compute_default_rope_parameters(config)
 
+    # TODO @tbouvier: use a proper Args object to configure RoPE scaling
     factor = config.rope_scaling["factor"]  # `8` in the original implementation
     low_freq_factor = config.rope_scaling["low_freq_factor"]  # `1` in the original implementation
     high_freq_factor = config.rope_scaling["high_freq_factor"]  # `4` in the original implementation
@@ -92,6 +93,7 @@ def _compute_llama3_parameters(config: LlamaConfig) -> Tuple["torch.Tensor", flo
     # wavelen < high_freq_wavelen: do nothing
     # wavelen > low_freq_wavelen: divide by factor
     inv_freq_llama = torch.where(wavelen > low_freq_wavelen, inv_freq / factor, inv_freq)
+
     # otherwise: interpolate between the two, using a smooth factor
     smooth_factor = (old_context_len / wavelen - low_freq_factor) / (high_freq_factor - low_freq_factor)
     smoothed_inv_freq = (1 - smooth_factor) * inv_freq_llama / factor + smooth_factor * inv_freq_llama
@@ -112,7 +114,7 @@ class LlamaRotaryEmbedding(nn.Module):
         config: LlamaConfig
     ):
         super().__init__()
-        self.rope_type = config.rope_scaling.get("rope_type", "default")
+        self.rope_type = config.rope_scaling.get("rope_type", "default") if config.rope_scaling else "default"
         self.max_seq_len_cached = config.max_position_embeddings
         self.original_max_seq_len = config.max_position_embeddings
 
@@ -134,6 +136,7 @@ class LlamaRotaryEmbedding(nn.Module):
         # x: [bs, num_attention_heads, seq_len, head_size]
         inv_freq_expanded = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, 1)
         position_ids_expanded = position_ids[:, None, :].float()
+
         # Force float32 (see https://github.com/huggingface/transformers/pull/29285)
         device_type = x.device.type
         with torch.autocast(device_type=device_type, enabled=False):
@@ -356,7 +359,7 @@ class CausalSelfAttention(nn.Module, AttachableStore):
             contiguous_chunks=qkv_contiguous_chunks,
             tp_recompute_allgather=parallel_config.tp_recompute_allgather,
         )
-        
+
         self.rotary_emb = LlamaRotaryEmbedding(config=config)
 
         self.o_proj = TensorParallelRowLinear(

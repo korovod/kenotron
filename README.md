@@ -56,13 +56,13 @@ A good starting point is to understand the memory usage from model configuration
 
 The following command will train a tiny Llama model on a single node with 8 GPUs. The model will be saved in the `checkpoints` directory as specified in the config file.
 ```bash
-CUDA_DEVICE_MAX_CONNECTIONS=1 torchrun --nproc_per_node=8 run_train.py --config-file examples/config_tiny_llama.yaml
+CUDA_DEVICE_MAX_CONNECTIONS=1 python -m torch.distributed.run --nproc_per_node=8 run_train.py --config-file examples/config_tiny_llama.yaml
 ```
 
 ### Run generation from your checkpoint
 
 ```bash
-torchrun --nproc_per_node=1 run_generate.py --ckpt-path checkpoints/10/ --tp 1 --pp 1
+python -m torch.distributed.run --nproc_per_node=1 run_generate.py --ckpt-path checkpoints/10/ --tp 1 --pp 1
 # We could set a larger TP for faster generation, and a larger PP in case of very large models.
 ```
 

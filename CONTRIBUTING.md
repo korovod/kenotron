@@ -89,7 +89,7 @@ Git](https://git-scm.com/book/en/v2) is a very good reference.
 
 Follow these steps to start contributing:
 
-1. Fork the [repository](https://github.com/huggingface/nanotron) by
+1. Fork the [repository](https://github.com/korovod/nanotron) by
    clicking on the 'Fork' button on the repository's page. This creates a copy of the code
    under your GitHub user account.
 
@@ -100,7 +100,7 @@ Follow these steps to start contributing:
    ```bash
    $ git clone git@github.com:<your Github handle>/nanotron.git
    $ cd nanotron
-   $ git remote add upstream https://github.com/huggingface/nanotron.git
+   $ git remote add upstream https://github.com/korovod/nanotron.git
    ```
 
 3. Create a new branch to hold your development changes, and do this for every new PR you work on.
@@ -124,13 +124,14 @@ Follow these steps to start contributing:
 4. Set up a development environment by running the following command in a conda or a virtual environment you've created for working on this library:
 
    ```bash
-   $ pip install -e ".[dev]"
-   $ pip install -e ".[test]"
+   $ uv env
+   $ uv pip install -e ".[dev]"
+   $ uv pip install -e ".[test]"
    $ pre-commit install
    ```
 
-   (If nanotron was already installed in the virtual environment, remove
-   it with `pip uninstall nanotron` before reinstalling it in editable
+   (If Nanotron was already installed in the virtual environment, remove
+   it with `uv pip uninstall nanotron` before reinstalling it in editable
    mode with the `-e` flag.)
 
    Alternatively, if you are using [Visual Studio Code](https://code.visualstudio.com/Download), the fastest way to get set up is by using
@@ -145,10 +146,6 @@ Follow these steps to start contributing:
    ```bash
    $ pytest tests/<TEST_TO_RUN>.py
    ```
-
-   `nanotron` relies on `ruff` to format its source code
-   consistently. After you make changes, apply automatic style corrections and code verifications
-   that can't be automated in one go with:
 
    This target is also optimized to only work with files modified by the PR you're working on.
 
@@ -167,7 +164,7 @@ Follow these steps to start contributing:
    $ git commit
    ```
 
-   Please write [good commit messages](https://chris.beams.io/posts/git-commit/).
+   Please write a commit message using the [Conventional Commits guidelines](https://www.conventionalcommits.org/en/v1.0.0/). Ideally, a longer commit body is provided after the short description, providing additional contextual information about the code changes.
 
    It is a good idea to sync your copy of the code with the original
    repository regularly. This way you can quickly account for changes:
@@ -210,7 +207,7 @@ See an example of a good PR here: https://github.com/huggingface/nanotron/pull/1
 ### Tests
 
 An extensive test suite is included to test the library behavior and several examples. Library tests can be found in
-the [tests folder](https://github.com/huggingface/nanotron/tree/main/tests).
+the [tests folder](https://github.com/korovod/nanotron/tree/main/tests).
 
 We use `pytest` in order to run the tests. From the root of the
 repository, here's how to run tests with `pytest` for the library:
@@ -220,5 +217,4 @@ repository, here's how to run tests with `pytest` for the library:
 $ pytest -n 12 tests
 ```
 
-You can specify a smaller set of tests in order to test only the feature
-you're working on.
+You can specify a smaller set of tests in order to test only the feature you're working on.

@@ -3,10 +3,11 @@ import torch
 import torch.distributed as dist
 from helpers.llama import TINY_LLAMA_CONFIG, create_llama_from_config, get_llama_training_config
 from helpers.utils import init_distributed, rerun_if_address_is_in_use
+from torch import nn
+
 from nanotron.config import Config, ModelArgs, RandomInit
 from nanotron.parallel import ParallelContext
 from nanotron.parallel.pipeline_parallel.block import PipelineBlock
-from torch import nn
 
 
 @pytest.mark.parametrize("tp,dp,pp", [(1, 1, 1), (2, 2, 2)])

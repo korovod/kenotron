@@ -11,14 +11,14 @@ package = importlib.import_module("nanotron")
 package_path = Path(package.__file__).parent.parent.parent
 sys.path.append(str(package_path))
 
-import nanotron.distributed as dist
 import torch
+from tools.preprocess_data import main
+
+import nanotron.distributed as dist
 from nanotron.data.nanoset import Nanoset
 from nanotron.parallel import ParallelContext
 from nanotron.parallel.pipeline_parallel.tensor_pointer import TensorPointer
 from nanotron.sanity_checks import assert_tensor_synced_across_pg
-
-from tools.preprocess_data import main
 
 
 def create_dataset_paths(tmp_dir: str, quantity: int):

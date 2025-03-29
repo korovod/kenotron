@@ -23,6 +23,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from config import MambaModelConfig
 from einops import rearrange, repeat
+from selective_scan_interface import mamba_inner_fn, selective_scan_fn
+from torch.nn import init
+
 from nanotron import distributed as dist
 from nanotron import logging
 from nanotron.config import ParallelismArgs
@@ -43,8 +46,6 @@ from nanotron.parallel.tensor_parallel.nn import (
     TensorParallelRowLinear,
 )
 from nanotron.random import RandomStates
-from selective_scan_interface import mamba_inner_fn, selective_scan_fn
-from torch.nn import init
 
 try:
     from causal_conv1d import causal_conv1d_fn, causal_conv1d_update
@@ -804,7 +805,7 @@ class MambaForTraining(NanotronModel):
             label_mask=label_mask,
         )["loss"]
         return {"loss": loss}
-    
+
     def get_named_params_without_weight_decay(self):
         # get full name with "A_log", "D"
         named_param_without_weight_decay = []
@@ -930,9 +931,11 @@ class MambaForTraining(NanotronModel):
             initialized_parameters.add(full_param_name)
 
         assert initialized_parameters == {
-            param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
-            if param.is_tied
-            else name
+            (
+                param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
+                if param.is_tied
+                else name
+            )
             for name, param in model.named_parameters()
         }, f"Somehow the initialized set of parameters don't match:\n - Expected: { {name for name, _ in model.named_parameters()} }\n - Got: {initialized_parameters}"
 

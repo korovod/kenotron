@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from helpers.utils import available_gpus, init_distributed, rerun_if_address_is_in_use
+
 from nanotron.optim.gradient_accumulator import FP32GradientAccumulator
 from nanotron.optim.named_optimizer import NamedOptimizer
 from nanotron.optim.optimizer_from_gradient_accumulator import OptimizerFromGradientAccumulator
@@ -441,6 +442,7 @@ def test_optimizer_grad_accumulation_lr_weight_decay_multiple_group(
             "weight_decay": weight_decay2,
         },
     ]
+
     # Optimizer
     def optimizer_builder(inp_param_groups):
         return NamedOptimizer(
@@ -533,6 +535,7 @@ def _test_ddp_optimizer_grad_accumulation_lr_weight_decay_multiple_group(
             "weight_decay": weight_decay2,
         },
     ]
+
     # Optimizer
     def optimizer_builder(inp_param_groups):
         return NamedOptimizer(

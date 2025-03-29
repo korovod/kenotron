@@ -9,6 +9,8 @@ from helpers.utils import (
     is_dict_equal,
     rerun_if_address_is_in_use,
 )
+from torch.nn.parallel import DistributedDataParallel
+
 from nanotron import distributed as dist
 from nanotron.constants import CHECKPOINT_VERSION
 from nanotron.optim.gradient_accumulator import FP32GradientAccumulator
@@ -33,7 +35,6 @@ from nanotron.serialize import (
     save_weights,
 )
 from nanotron.serialize.metadata import TensorMetadata
-from torch.nn.parallel import DistributedDataParallel
 
 
 def test_save_and_load_with_changed_topolgy():

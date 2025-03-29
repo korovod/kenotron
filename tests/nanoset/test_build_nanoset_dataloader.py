@@ -18,12 +18,13 @@ from helpers.data import (
     preprocess_dummy_dataset,
 )
 from helpers.utils import available_gpus, get_all_3d_configurations, init_distributed, rerun_if_address_is_in_use
+from transformers import AutoTokenizer
+
 from nanotron.data.dataloader_builder import build_nanoset_dataloader
 from nanotron.data.nanoset import Nanoset
 from nanotron.data.utils import count_dataset_indexes, normalize
 from nanotron.parallel import ParallelContext
 from nanotron.utils import main_rank_first
-from transformers import AutoTokenizer
 
 
 @pytest.mark.parametrize(

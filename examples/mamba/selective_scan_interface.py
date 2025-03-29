@@ -361,7 +361,17 @@ class MambaInnerFn(torch.autograd.Function):
         if dout.stride(-1) != 1:
             dout = dout.contiguous()
 
-        (dconv1d_out, ddelta, dA, dB, dC, dD, ddelta_bias, dz, out_z,) = selective_scan_cuda.bwd(
+        (
+            dconv1d_out,
+            ddelta,
+            dA,
+            dB,
+            dC,
+            dD,
+            ddelta_bias,
+            dz,
+            out_z,
+        ) = selective_scan_cuda.bwd(
             conv1d_out,
             delta,
             A,

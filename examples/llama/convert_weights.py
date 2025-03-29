@@ -2,8 +2,9 @@ import json
 from pathlib import Path
 from typing import Optional
 
-import nanotron
 import torch
+
+import nanotron
 from nanotron.config import LlamaConfig as NanotronLlamaConfig
 from nanotron.models.llama import LlamaForTraining
 from nanotron.trainer import mark_tied_parameters

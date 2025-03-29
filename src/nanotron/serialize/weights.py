@@ -132,14 +132,14 @@ def read_checkpoint_version_from_shard_file(param_save_path: Path) -> Version:
 
 
 def read_checkpoint_version_from_meta(
-    checkpoint_engine: CheckpointEngine,
-    parallel_context: ParallelContext,
-    root_folder: Path
+    checkpoint_engine: CheckpointEngine, parallel_context: ParallelContext, root_folder: Path
 ) -> Version:
     checkpoint_metadata: CheckpointMetadata = load_meta(
         checkpoint_engine_type=get_checkpoint_engine_type_from_instance(checkpoint_engine),
         checkpoint_engine_version=checkpoint_engine.CHECKPOINT_VERSION,
-        parallel_context=parallel_context, root_folder=root_folder)
+        parallel_context=parallel_context,
+        root_folder=root_folder,
+    )
     checkpoint_version = checkpoint_metadata.version
     return checkpoint_version
 
@@ -161,20 +161,20 @@ def get_checkpoint_version(checkpoint_engine, parallel_context, root_folder, par
 
 
 def read_checkpoint_engine_type_from_meta(
-    checkpoint_engine: CheckpointEngine,
-    parallel_context: ParallelContext,
-    root_folder: Path
+    checkpoint_engine: CheckpointEngine, parallel_context: ParallelContext, root_folder: Path
 ) -> CheckpointingEngineType:
     checkpoint_metadata: CheckpointMetadata = load_meta(
         checkpoint_engine_type=get_checkpoint_engine_type_from_instance(checkpoint_engine),
         checkpoint_engine_version=checkpoint_engine.CHECKPOINT_VERSION,
         parallel_context=parallel_context,
-        root_folder=root_folder
+        root_folder=root_folder,
     )
     return checkpoint_metadata.checkpointing_engine_type
 
 
-def get_checkpoint_engine_type(checkpoint_engine: CheckpointEngine, parallel_context, root_folder: Path) -> CheckpointingEngineType:
+def get_checkpoint_engine_type(
+    checkpoint_engine: CheckpointEngine, parallel_context, root_folder: Path
+) -> CheckpointingEngineType:
     return read_checkpoint_engine_type_from_meta(
         checkpoint_engine=checkpoint_engine, parallel_context=parallel_context, root_folder=root_folder
     )
@@ -237,11 +237,11 @@ def load_weights(
         filtered_state_dict: state dict to load from (overrides model.state_dict()). if None, load from model.state_dict()
     """
     # Reading which checkpointing engine was used
-    meta_checkpoint_engine_type = get_checkpoint_engine_type(
-        checkpoint_engine, parallel_context, root_folder
-    )
+    meta_checkpoint_engine_type = get_checkpoint_engine_type(checkpoint_engine, parallel_context, root_folder)
     if get_checkpoint_engine_type_from_instance(checkpoint_engine) != meta_checkpoint_engine_type:
-        raise RuntimeError(f"The checkpoint engine {meta_checkpoint_engine_type}, which was used to save states, is not currently active.")
+        raise RuntimeError(
+            f"The checkpoint engine {meta_checkpoint_engine_type}, which was used to save states, is not currently active."
+        )
 
     param_root_folder = root_folder / "model"
 

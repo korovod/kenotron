@@ -202,8 +202,9 @@ class CheckpointsArgs:
         if isinstance(self.checkpoints_path, str):
             self.checkpoints_path = xPath(self.checkpoints_path)
         if isinstance(self.checkpointing_engine, str):
-            assert is_valid_checkpointing_engine_type(self.checkpointing_engine), \
-                f"{self.checkpointing_engine} is not a valid checkpointing engine type"
+            assert is_valid_checkpointing_engine_type(
+                self.checkpointing_engine
+            ), f"{self.checkpointing_engine} is not a valid checkpointing engine type"
             self.checkpointing_engine = CheckpointingEngineType[self.checkpointing_engine.upper()]
         if isinstance(self.resume_checkpoint_path, str):
             self.resume_checkpoint_path = xPath(self.resume_checkpoint_path)

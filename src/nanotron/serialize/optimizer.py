@@ -88,14 +88,14 @@ def save_optimizer(
                     else:
                         return str(input_item)
 
-                # NOTE: if it's a ZeRO-1 optimzier, then we save how the parameters are sharded
+                # NOTE: if it's a ZeRO-1 optimizer, then we save how the parameters are sharded
                 # across data parallel dimension, so that we can reconstruct the optimizer states
                 assert optimizer.param_name_to_dp_rank_offsets is not None, "param_name_to_dp_rank_offsets is required"
                 config["configs"]["param_name_to_dp_rank_offsets"] = convert_to_string(
                     optimizer.param_name_to_dp_rank_offsets
                 )
                 # NOTE: since tp sharded params are flattened, so we need to save the original param shapes
-                # so that we can recontruct the original shapes => reconstruct the unsharded params in tensor parallel dimension
+                # so that we can reconstruct the original shapes => reconstruct the unsharded params in tensor parallel dimension
                 config["configs"]["orig_param_shapes"] = convert_to_string(optimizer._orig_param_shapes)
 
             json.dump(config, fo)

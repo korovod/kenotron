@@ -15,6 +15,12 @@ import torch
 import yaml
 from config import MambaConfig, MambaInit, MambaModelConfig
 from mamba import MambaForTraining
+from tqdm import tqdm
+from transformers import MambaConfig as HFMambaConfig
+from transformers import MambaForCausalLM
+from transformers.utils import CONFIG_NAME
+from transformers.utils.hub import cached_file
+
 from nanotron import logging
 from nanotron.config import (
     AllForwardAllBackwardPipelineEngine,
@@ -32,11 +38,6 @@ from nanotron.parallel import ParallelContext
 from nanotron.parallel.parameters import NanotronParameter, sanity_check
 from nanotron.serialize import save_meta, save_weights
 from nanotron.trainer import mark_tied_parameters
-from tqdm import tqdm
-from transformers import MambaConfig as HFMambaConfig
-from transformers import MambaForCausalLM
-from transformers.utils import CONFIG_NAME
-from transformers.utils.hub import cached_file
 
 logger = logging.get_logger(__name__)
 

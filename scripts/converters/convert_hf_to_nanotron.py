@@ -1,6 +1,7 @@
 """
 torchrun --nproc-per-node 1 tools/converters/convert_hf_to_nanotron.py --nanotron-checkpoint-path checkpoints/nanotron_pretrained_checkpoints/Nanotron-Llama-3.2-3B --pretrained-model-name-or-path meta-llama/Llama-3.2-3B
 """
+
 import argparse
 import json
 from dataclasses import asdict
@@ -8,15 +9,18 @@ from pathlib import Path
 
 import torch
 import yaml
+from tqdm import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 from nanotron import logging
 from nanotron.config import (
+    CheckpointsArgs,
     Config,
     GeneralArgs,
     LoggingArgs,
     ModelArgs,
     ParallelismArgs,
     TokenizerArgs,
-    CheckpointsArgs,
 )
 from nanotron.config.models_config import ExistingCheckpointInit
 from nanotron.config.models_config import LlamaConfig as LlamaConfigNanotron
@@ -27,14 +31,10 @@ from nanotron.parallel import ParallelContext
 from nanotron.parallel.parameters import sanity_check
 from nanotron.serialize import TrainingMetadata, save_meta, save_weights
 from nanotron.serialize.engine import (
-    TorchCheckpointEngine,
-    DataStatesCheckpointEngine,
     create_checkpoint_engine_class,
 )
 from nanotron.serialize.metadata import DataStageMetadata
 from nanotron.trainer import mark_tied_parameters
-from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
 logger = logging.get_logger(__name__)
 

@@ -1,7 +1,6 @@
 import platform
 
-from packaging.version import Version, parse
-
+from packaging.version import parse
 
 PY_VERSION = parse(platform.python_version())
 

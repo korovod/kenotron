@@ -5,10 +5,11 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 import torch
 from datatrove.utils.dataset import DatatroveFolderDataset
+from numba import jit
+
 from nanotron import logging
 from nanotron.data.utils import count_dataset_indexes, normalize
 from nanotron.logging import log_rank
-from numba import jit
 
 logger = logging.get_logger(__name__)
 

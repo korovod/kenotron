@@ -7,8 +7,9 @@ from datetime import datetime
 
 import pandas as pd
 import yaml
-from nanotron.logging import human_format
 from tqdm import tqdm
+
+from nanotron.logging import human_format
 
 ACCUMULATE_GRAD_IN_FP32 = True
 NUM_KEY_VALUE_HEADS = None  # Although it's necessary to reduce 450B to 400B model, we can't bench tp>8 if we use 8 KV heads
@@ -353,7 +354,7 @@ def main():
     # tp_mbs_configs = [
     #     # Format: (tp, mbs)
     #     # TP=1 OOMs
-    #     (2, 3),    # 363.66 TFLOPs, 14167.25 tok/s/gpu  
+    #     (2, 3),    # 363.66 TFLOPs, 14167.25 tok/s/gpu
     #     (4, 9),   # 345.51 TFLOPs, 13460.16 tok/s/gpu (-5%)
     #     (8, 18),   # 279.50 TFLOPs, 10888.53 tok/s/gpu (-19%)
     #     (16, 40),  # 158.10 TFLOPs, 6159.30 tok/s/gpu (-43%)
@@ -377,7 +378,7 @@ def main():
     ZERO_STAGES = [0] # 0 if dp>=32 and model<80 / if no need for memory
     TP_MODES = ["REDUCE_SCATTER"]
     # TP_MODES = ["ALL_REDUCE"]
-    GBS = [512 * 2048]  # 1M
+    # GBS = [512 * 2048]  # 1M
     MIN_NODES = 0
     MAX_NODES = 10
 
@@ -401,7 +402,7 @@ def main():
                                         print(f"Skipping config - nodes {total_gpus/8} not in range [{MIN_NODES}, {MAX_NODES}]")
                                         continue
 
-                                    tokens_per_step = dp * mbs * batch_accum * seq_len
+                                    # tokens_per_step = dp * mbs * batch_accum * seq_len
                                     # if tokens_per_step not in GBS:
                                     #     continue
                                     # if batch_accum > 1:
@@ -410,7 +411,7 @@ def main():
 
                                     # if dp=1 skip zero stage 1
                                     if dp == 1 and zero_stage == 1:
-                                        print(f"Skipping config - dp=1 with zero stage 1")
+                                        print("Skipping config - dp=1 with zero stage 1")
                                         continue
 
                                     # if tp=1 skip tp_mode=ALL_REDUCE
@@ -446,7 +447,7 @@ def main():
     for config in configurations:
         # config = (dp, tp, pp, batch_accum, seq_len, mbs, num_layers, hidden_size, num_heads, intermediate_size, vocab_size, zero_stage, tp_mode)
         dp, tp, pp, batch_accum, seq_len, mbs, num_layers, hidden_size, num_heads, intermediate_size, vocab_size, zero_stage, tp_mode = config
-        tokens_per_step = dp * mbs * batch_accum * seq_len
+        # tokens_per_step = dp * mbs * batch_accum * seq_len
         # if tokens_per_step not in GBS:
         #     print(f"Invalid config: {config} | tokens_per_step: {tokens_per_step}")
             # continue
@@ -478,7 +479,7 @@ def main():
     # run first 100 configurations
     # configurations = configurations[:120+5000]
 
-        
+
     # load data
     import pandas as pd
     old_results_df = pd.read_csv('benchmark/results/bench_final2_mfu2.csv')

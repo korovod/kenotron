@@ -7,11 +7,14 @@ export CUDA_DEVICE_MAX_CONNECTIONS=1 # important for some distributed operations
 torchrun --nproc_per_node=2 examples/custom-dataloader/run_train.py --config-file examples/custom-dataloader/config_custom_dl.yaml
 ```
 """
+
 import argparse
 from typing import Dict, cast
 
 import datasets
 import numpy as np
+from torch.utils.data import DataLoader
+
 from nanotron import logging
 from nanotron.config import (
     DataArgs,
@@ -35,7 +38,6 @@ from nanotron.logging import log_rank
 from nanotron.parallel.pipeline_parallel.utils import get_input_output_pp_ranks
 from nanotron.trainer import DistributedTrainer
 from nanotron.utils import main_rank_first
-from torch.utils.data import DataLoader
 
 try:
     from huggingface_hub import __version__ as hf_hub_version

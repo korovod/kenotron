@@ -10,6 +10,7 @@ The folder that contains the evaluation results should have the following struct
     ...
 ...
 """
+
 import argparse
 import json
 import os

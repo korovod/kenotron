@@ -2,6 +2,9 @@ from math import ceil
 from typing import Union
 
 import torch
+from torch import nn
+from torch.nn.parallel import DistributedDataParallel
+
 from nanotron import distributed as dist
 from nanotron.models import init_on_device_and_dtype
 from nanotron.optim.base import BaseOptimizer
@@ -13,8 +16,6 @@ from nanotron.parallel.pipeline_parallel.p2p import P2P
 from nanotron.parallel.pipeline_parallel.tensor_pointer import TensorPointer
 from nanotron.parallel.tied_parameters import tie_parameters
 from nanotron.parallel.utils import initial_sync
-from torch import nn
-from torch.nn.parallel import DistributedDataParallel
 
 
 class DummyModel(nn.Module):
@@ -118,7 +119,9 @@ def dummy_infinite_data_loader(pp_pg: dist.ProcessGroup, dtype=torch.float, inpu
     current_pp_rank = dist.get_rank(pp_pg)
     while True:
         yield {
-            "x": torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
-            if current_pp_rank == input_pp_rank
-            else TensorPointer(group_rank=input_pp_rank)
+            "x": (
+                torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
+                if current_pp_rank == input_pp_rank
+                else TensorPointer(group_rank=input_pp_rank)
+            )
         }

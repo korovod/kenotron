@@ -6,6 +6,9 @@ from helpers.distributed_tensor import assert_tensor_equal_over_group
 from helpers.dummy import dummy_infinite_data_loader, init_dummy_model
 from helpers.exception import assert_fail_with
 from helpers.utils import available_gpus, init_distributed, rerun_if_address_is_in_use
+from torch import nn as torch_nn
+from torch.nn.parallel import DistributedDataParallel
+
 from nanotron import distributed as dist
 from nanotron.optim import NamedOptimizer, ZeroDistributedOptimizer
 from nanotron.optim.zero import SlicedFlatTensor
@@ -18,8 +21,6 @@ from nanotron.parallel.tensor_parallel import nn
 from nanotron.parallel.tensor_parallel.enum import TensorParallelLinearMode
 from nanotron.parallel.tied_parameters import sync_tied_weights_gradients
 from nanotron.random import RandomStates, branch_random_state, get_current_random_state, get_synced_random_state
-from torch import nn as torch_nn
-from torch.nn.parallel import DistributedDataParallel
 
 
 @pytest.mark.parametrize("tp,dp,pp", [pytest.param(1, i, 1) for i in range(1, min(4, available_gpus()) + 1)])
@@ -165,7 +166,7 @@ def _test_zero_optimizer(parallel_context: ParallelContext):
             torch.testing.assert_close(param, ref_param, msg=lambda msg: f"At iteration {i}, {msg}")
 
         # Check params have been updated correctly
-        for (name, param) in model.named_parameters():
+        for name, param in model.named_parameters():
             old_param = old_named_params[name]
             assert not torch.allclose(param, old_param)
 
@@ -290,9 +291,11 @@ def _test_zero_optimizer_with_tp(
     with branch_random_state(random_states=random_states, key="tp_synced", enabled=True):
         nb_optim_steps = 3
         batches = [
-            torch.randn(batch_size, 5, device="cuda")
-            if dist.get_rank(parallel_context.pp_pg) == 0
-            else TensorPointer(0)
+            (
+                torch.randn(batch_size, 5, device="cuda")
+                if dist.get_rank(parallel_context.pp_pg) == 0
+                else TensorPointer(0)
+            )
             for _ in range(nb_optim_steps)
         ]
 
@@ -447,7 +450,7 @@ def _test_zero_optimizer_with_tp(
                 torch.testing.assert_close(param, ref_param, msg=lambda msg: f"At iteration {i}, {msg}")
 
         # Check params have been updated correctly:
-        for (name, param) in model.named_parameters():
+        for name, param in model.named_parameters():
             old_param = old_named_params[name]
             assert not torch.allclose(param, old_param)
 

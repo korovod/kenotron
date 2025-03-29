@@ -14,6 +14,7 @@ from nanotron.constants import CHECKPOINT_FILE_NAME
 from nanotron.parallel import ParallelContext
 from nanotron.parallel.parameters import SlicesPair
 
+
 @dataclasses.dataclass
 class DataStageMetadata:
     """
@@ -128,7 +129,13 @@ def to_list(list_: Union[List, Tuple], type_hooks: Dict[Type, Callable[[Any], An
     return list_.__class__((process_type(elt, type_hooks=type_hooks) for elt in list_))
 
 
-def save_meta(checkpoint_engine_type: CheckpointingEngineType, checkpoint_engine_version: Version, parallel_context: ParallelContext, root_folder: Path, training_metadata: TrainingMetadata):
+def save_meta(
+    checkpoint_engine_type: CheckpointingEngineType,
+    checkpoint_engine_version: Version,
+    parallel_context: ParallelContext,
+    root_folder: Path,
+    training_metadata: TrainingMetadata,
+):
     assert isinstance(training_metadata, TrainingMetadata)
 
     if dist.get_rank(parallel_context.world_pg) != 0:
@@ -150,7 +157,12 @@ def save_meta(checkpoint_engine_type: CheckpointingEngineType, checkpoint_engine
         json.dump(processed_metadata, fo, indent=2, sort_keys=True)
 
 
-def load_meta(checkpoint_engine_type: CheckpointingEngineType, checkpoint_engine_version: Version, parallel_context: ParallelContext, root_folder: Path) -> CheckpointMetadata:
+def load_meta(
+    checkpoint_engine_type: CheckpointingEngineType,
+    checkpoint_engine_version: Version,
+    parallel_context: ParallelContext,
+    root_folder: Path,
+) -> CheckpointMetadata:
     with open(root_folder / CHECKPOINT_FILE_NAME, mode="r") as fi:
         checkpoint_metadata = json.load(fi)
         checkpoint_metadata = from_dict(

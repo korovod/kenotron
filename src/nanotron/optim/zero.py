@@ -234,17 +234,21 @@ class ZeroDistributedOptimizer(InheritFromOtherOptimizer):
         dist.all_gather_coalesced(
             output_tensor_lists=[
                 [
-                    tensor[slice(*self.param_name_to_dp_rank_offsets[name][dp_rank])]
-                    if dp_rank in self.param_name_to_dp_rank_offsets[name]
-                    else torch.empty(0, dtype=tensor.dtype, device=tensor.device)
+                    (
+                        tensor[slice(*self.param_name_to_dp_rank_offsets[name][dp_rank])]
+                        if dp_rank in self.param_name_to_dp_rank_offsets[name]
+                        else torch.empty(0, dtype=tensor.dtype, device=tensor.device)
+                    )
                     for dp_rank in range(self.dp_pg.size())
                 ]
                 for name, tensor in all_named_tensors_to_gather
             ],
             input_tensor_list=[
-                tensor[slice(*self.param_name_to_dp_rank_offsets[name][current_dp_rank])]
-                if current_dp_rank in self.param_name_to_dp_rank_offsets[name]
-                else torch.empty(0, dtype=tensor.dtype, device=tensor.device)
+                (
+                    tensor[slice(*self.param_name_to_dp_rank_offsets[name][current_dp_rank])]
+                    if current_dp_rank in self.param_name_to_dp_rank_offsets[name]
+                    else torch.empty(0, dtype=tensor.dtype, device=tensor.device)
+                )
                 for name, tensor in all_named_tensors_to_gather
             ],
             group=self.dp_pg,

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import torch
+
 from nanotron.config import Config
 
 

@@ -12,9 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" PyTorch LLaMa MoE model."""
+"""PyTorch LLaMa MoE model."""
 import math
-from typing import Dict, Optional, Union, List
+from typing import Dict, Optional, Union
 
 import torch
 from config_llamoe import LlaMoEConfig
@@ -25,6 +25,9 @@ from flash_attn.flash_attn_interface import (
 )
 from flash_attn.layers.rotary import RotaryEmbedding as FlashRotaryEmbedding
 from moe import dMoE
+from torch import nn
+from torch.nn import init
+
 from nanotron import distributed as dist
 from nanotron import logging
 from nanotron.config import ParallelismArgs
@@ -45,8 +48,6 @@ from nanotron.parallel.tensor_parallel.nn import (
 )
 from nanotron.random import RandomStates
 from nanotron.utils import checkpoint_method
-from torch import nn
-from torch.nn import init
 
 logger = logging.get_logger(__name__)
 
@@ -909,12 +910,14 @@ class LlaMoEForTraining(NanotronModel):
             initialized_parameters.add(full_param_name)
 
         assert initialized_parameters == {
-            param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
-            if param.is_tied
-            else name
+            (
+                param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
+                if param.is_tied
+                else name
+            )
             for name, param in model.named_parameters()
         }, f"Somehow the initialized set of parameters don't match:\n - Expected: { {name for name, _ in model.named_parameters()} }\n - Got: {initialized_parameters}"
-    
+
     def get_block_compute_costs(self):
         """Computes the compute cost of each block in the model so that we can do a better job of load balancing."""
         return self.model.get_block_compute_costs()

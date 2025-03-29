@@ -4,6 +4,9 @@ import pytest
 import torch
 from helpers.dummy import DummyModel, dummy_infinite_data_loader
 from helpers.utils import available_gpus, init_distributed, rerun_if_address_is_in_use
+from torch import nn
+from torch.nn import functional as F
+
 from nanotron import distributed as dist
 from nanotron.models import init_on_device_and_dtype
 from nanotron.parallel import ParallelContext
@@ -15,8 +18,6 @@ from nanotron.parallel.pipeline_parallel.engine import (
 )
 from nanotron.parallel.pipeline_parallel.p2p import P2P
 from nanotron.parallel.pipeline_parallel.tensor_pointer import TensorPointer
-from torch import nn
-from torch.nn import functional as F
 
 
 @pytest.mark.skipif(available_gpus() < 2, reason="Testing build_and_set_rank requires at least 2 gpus")
@@ -326,7 +327,7 @@ def _test_pipeline_engine_with_tensor_that_does_not_require_grad(
     # synchronize weights
     if has_reference_model:
         with torch.inference_mode():
-            for (mlp_index, pp_rank) in mlp_index_pp_rank:
+            for mlp_index, pp_rank in mlp_index_pp_rank:
                 non_linear = model.mlp[mlp_index]
                 reference_non_linear = reference_model.mlp[mlp_index]
                 if pp_rank == current_pp_rank:
@@ -339,7 +340,7 @@ def _test_pipeline_engine_with_tensor_that_does_not_require_grad(
                 reference_non_linear.linear.pp_block.weight.data.copy_(weight.data)
                 reference_non_linear.linear.pp_block.bias.data.copy_(bias.data)
     else:
-        for (mlp_index, pp_rank) in mlp_index_pp_rank:
+        for mlp_index, pp_rank in mlp_index_pp_rank:
             if pp_rank == current_pp_rank:
                 p2p.send_tensors(
                     [model.mlp[mlp_index].linear.pp_block.weight, model.mlp[mlp_index].linear.pp_block.bias],
@@ -354,12 +355,16 @@ def _test_pipeline_engine_with_tensor_that_does_not_require_grad(
         # We assume the first linear is always built on the first rank.
         while True:
             yield {
-                "differentiable_tensor": torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
-                if current_pp_rank == input_pp_rank
-                else TensorPointer(group_rank=input_pp_rank),
-                "non_differentiable_tensor": torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
-                if current_pp_rank == input_pp_rank
-                else TensorPointer(group_rank=input_pp_rank),
+                "differentiable_tensor": (
+                    torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
+                    if current_pp_rank == input_pp_rank
+                    else TensorPointer(group_rank=input_pp_rank)
+                ),
+                "non_differentiable_tensor": (
+                    torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
+                    if current_pp_rank == input_pp_rank
+                    else TensorPointer(group_rank=input_pp_rank)
+                ),
             }
 
     data_iterator = dummy_infinite_data_loader_with_non_differentiable_tensor(
@@ -410,7 +415,7 @@ def _test_pipeline_engine_with_tensor_that_does_not_require_grad(
 
     # Check that gradient are the same as reference
     if has_reference_model:
-        for (mlp_index, pp_rank) in mlp_index_pp_rank:
+        for mlp_index, pp_rank in mlp_index_pp_rank:
             non_linear = model.mlp[mlp_index]
             reference_non_linear = reference_model.mlp[mlp_index]
             if pp_rank == current_pp_rank:
@@ -435,7 +440,7 @@ def _test_pipeline_engine_with_tensor_that_does_not_require_grad(
             )
             torch.testing.assert_close(bias_grad, reference_non_linear.linear.pp_block.bias.grad, atol=1e-6, rtol=1e-7)
     else:
-        for (mlp_index, pp_rank) in mlp_index_pp_rank:
+        for mlp_index, pp_rank in mlp_index_pp_rank:
             if pp_rank == current_pp_rank:
                 p2p.send_tensors(
                     [model.mlp[mlp_index].linear.pp_block.weight.grad, model.mlp[mlp_index].linear.pp_block.bias.grad],
@@ -561,12 +566,16 @@ def _test_pipeline_forward_without_engine(parallel_context: ParallelContext):
         # We assume the first linear is always built on the first rank.
         while True:
             yield {
-                "differentiable_tensor": torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
-                if current_pp_rank == input_pp_rank
-                else TensorPointer(group_rank=input_pp_rank),
-                "non_differentiable_tensor": torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
-                if current_pp_rank == input_pp_rank
-                else TensorPointer(group_rank=input_pp_rank),
+                "differentiable_tensor": (
+                    torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
+                    if current_pp_rank == input_pp_rank
+                    else TensorPointer(group_rank=input_pp_rank)
+                ),
+                "non_differentiable_tensor": (
+                    torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
+                    if current_pp_rank == input_pp_rank
+                    else TensorPointer(group_rank=input_pp_rank)
+                ),
             }
 
     data_iterator = dummy_infinite_data_loader_with_non_differentiable_tensor(
@@ -782,9 +791,11 @@ def _test_pipeline_engine_diamond(parallel_context: ParallelContext, pipeline_en
         # We assume the first linear is always built on the first rank.
         while True:
             yield {
-                "x": torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
-                if current_pp_rank == input_pp_rank
-                else TensorPointer(group_rank=input_pp_rank),
+                "x": (
+                    torch.randn(micro_batch_size, 10, dtype=dtype, device="cuda")
+                    if current_pp_rank == input_pp_rank
+                    else TensorPointer(group_rank=input_pp_rank)
+                ),
             }
 
     data_iterator = dummy_infinite_data_loader_with_non_differentiable_tensor(

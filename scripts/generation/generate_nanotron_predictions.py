@@ -1,14 +1,18 @@
 """
 torchrun --nproc-per-node 1 tools/converters/delete/generate_nanotron_predictions.py --tp 1 --nanotron-checkpoint-path /capstor/scratch/cscs/asolergi/nanotron/checkpoints/nanotron_pretrained_checkpoints/Nanotron-Llama-3.2-3B
 """
+
 import argparse
 import os
 from pathlib import Path
 
-import nanotron.distributed as dist
 import numpy as np
 import torch
-from nanotron.config import Config, ParallelismArgs, CheckpointsArgs, get_config_from_file
+from sklearn.metrics import accuracy_score
+from transformers import AutoTokenizer
+
+import nanotron.distributed as dist
+from nanotron.config import CheckpointsArgs, Config, ParallelismArgs, get_config_from_file
 from nanotron.models import build_model
 from nanotron.models.llama import LlamaForTraining
 from nanotron.parallel import ParallelContext
@@ -17,15 +21,11 @@ from nanotron.parallel.pipeline_parallel.engine import AllForwardAllBackwardPipe
 from nanotron.parallel.tensor_parallel.nn import TensorParallelLinearMode
 from nanotron.serialize import load_weights
 from nanotron.serialize.engine import (
-    TorchCheckpointEngine,
-    DataStatesCheckpointEngine,
     create_checkpoint_engine_class,
 )
 from nanotron.trainer import mark_tied_parameters
-from sklearn.metrics import accuracy_score
-from transformers import AutoTokenizer
 
-TXT="Paris! Paris is the capital and most populous city of France, located in the north-central part of the country. It is a global center for art, fashion, cuisine, culture, and romance. Here's a brief overview: **History and Culture:**Paris has a rich history dating back to the 3rd century, with a blend of Roman, Gothic, Renaissance, and Art Nouveau influences. The city is famous for its iconic landmarks like the Eiffel Tower (built for the 1889 World's Fair), the Louvre Museum (home to the Mona Lisa), Notre-Dame Cathedral, and the Arc de Triomphe. **Art and Architecture:**Paris is renowned for its stunning architecture, with many beautiful bridges, gardens, and buildings. The city is also a hub for art, with numerous museums, galleries, and street performers. The Louvre, Musée d'Orsay, and Centre Pompidou are just a few of the many world-class museums. **Fashion and Cuisine:**Paris is considered the fashion capital of the world, with top designers like Chanel, Dior, and Louis Vuitton. The city is also famous for its exquisite cuisine, with popular dishes like escargots, croissants, baguettes, and cheese. Don't forget to try a classic French dessert like crème brûlée or macarons! **Romance and Entertainment:**Paris is often called the City of Light (La Ville Lumière) and the City of Love. It's a popular destination for couples and honeymooners, with its picturesque Seine River, charming streets, and cozy cafes. The city also hosts many festivals and events, including the French Open tennis tournament, the Tour de France, and the Rock en Seine music festival. **Economy and Education:** Paris is a global economic hub, with many multinational companies, startups, and universities. The city is home to some of the world's top universities, including the Sorbonne and École des Hautes Études en Sciences Sociales (EHESS). **Tourism:** Paris is one of the most visited cities in the world, attracting over 23 million tourists annually. Visitors come to experience the city's unique blend of history, culture, art, fashion, and romance. In summary, Paris is a vibrant, elegant, and enchanting city that offers something for everyone: history, art, fashion, cuisine, romance, and entertainment."
+TXT = "Paris! Paris is the capital and most populous city of France, located in the north-central part of the country. It is a global center for art, fashion, cuisine, culture, and romance. Here's a brief overview: **History and Culture:**Paris has a rich history dating back to the 3rd century, with a blend of Roman, Gothic, Renaissance, and Art Nouveau influences. The city is famous for its iconic landmarks like the Eiffel Tower (built for the 1889 World's Fair), the Louvre Museum (home to the Mona Lisa), Notre-Dame Cathedral, and the Arc de Triomphe. **Art and Architecture:**Paris is renowned for its stunning architecture, with many beautiful bridges, gardens, and buildings. The city is also a hub for art, with numerous museums, galleries, and street performers. The Louvre, Musée d'Orsay, and Centre Pompidou are just a few of the many world-class museums. **Fashion and Cuisine:**Paris is considered the fashion capital of the world, with top designers like Channel, Dior, and Louis Vuitton. The city is also famous for its exquisite cuisine, with popular dishes like escargots, croissants, baguettes, and cheese. Don't forget to try a classic French dessert like crème brûlée or macarons! **Romance and Entertainment:**Paris is often called the City of Light (La Ville Lumière) and the City of Love. It's a popular destination for couples and honeymooners, with its picturesque Seine River, charming streets, and cozy cafes. The city also hosts many festivals and events, including the French Open tennis tournament, the Tour de France, and the Rock en Seine music festival. **Economy and Education:** Paris is a global economic hub, with many multinational companies, startups, and universities. The city is home to some of the world's top universities, including the Sorbonne and École des Hautes Études en Sciences Sociales (EHESS). **Tourism:** Paris is one of the most visited cities in the world, attracting over 23 million tourists annually. Visitors come to experience the city's unique blend of history, culture, art, fashion, and romance. In summary, Paris is a vibrant, elegant, and enchanting city that offers something for everyone: history, art, fashion, cuisine, romance, and entertainment."
 SEQ_LENGTH = 256  # For truncating the TXT if GPU can't fit too many tokens
 
 DEVICE = torch.device("cuda")
@@ -149,6 +149,7 @@ def main(args):
         predictions = np.argmax(output.transpose(0, 1).to(torch.float).cpu(), axis=2).flatten().tolist()
         labels = tokens.cpu().flatten()[1:].tolist()
         print(f"\nAccuracy: {accuracy_score(labels, predictions)}")
+
 
 if __name__ == "__main__":
     _args = get_args()

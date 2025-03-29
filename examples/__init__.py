@@ -1,1 +1,1 @@
-# Make examples directory a proper Python package 
+# Make examples directory a proper Python package

@@ -421,11 +421,13 @@ def init_optimizer_and_grad_accumulator(
                 dp_pg=parallel_context.dp_pg,
                 accumulator=grad_accumulator,
                 param_id_to_name={
-                    id(param): param.get_tied_info().get_full_name_from_module_id_to_prefix(
-                        module_id_to_prefix=module_id_to_prefix
+                    id(param): (
+                        param.get_tied_info().get_full_name_from_module_id_to_prefix(
+                            module_id_to_prefix=module_id_to_prefix
+                        )
+                        if param.is_tied
+                        else name
                     )
-                    if param.is_tied
-                    else name
                     for name, param in unwrapped_model.named_parameters()
                 },
             ),

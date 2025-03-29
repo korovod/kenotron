@@ -1,4 +1,5 @@
-""" LlaMa model with MoEs"""
+"""LlaMa model with MoEs"""
+
 import warnings
 from functools import partial
 from typing import Optional, Tuple
@@ -10,6 +11,8 @@ import torch.nn.functional as F
 from config_llamoe import LlaMoEConfig
 from megablocks.layers import weight_parallel as wp
 from megablocks.layers.activation_fn import act_fn
+from torch import nn
+
 from nanotron import distributed as dist
 from nanotron import logging
 from nanotron.config import ParallelismArgs
@@ -20,7 +23,6 @@ from nanotron.parallel.tensor_parallel.nn import (
     TensorParallelColumnLinear,
     TensorParallelRowLinear,
 )
-from torch import nn
 
 try:
     import megablocks.ops as ops
@@ -159,7 +161,7 @@ class ParallelDroplessMLP(torch.nn.Module):
         tokens_per_expert = ops.histogram(top_experts, self.num_experts)
 
         # Round the token counts up to the block size used in
-        # the matrix muliplications. Calculate the starting
+        # the matrix multiplications. Calculate the starting
         # position of each bin.
         padded_tokens_per_expert = ops.round_up(tokens_per_expert, self.blocking)
         padded_bins = inclusive_cumsum(padded_tokens_per_expert, 0)

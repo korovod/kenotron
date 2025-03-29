@@ -3,6 +3,7 @@ from typing import Dict, List, Union
 
 import numpy as np
 import torch
+
 from nanotron import distributed as dist
 from nanotron.parallel.context import ParallelContext
 from nanotron.parallel.pipeline_parallel.tensor_pointer import TensorPointer

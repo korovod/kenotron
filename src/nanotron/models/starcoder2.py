@@ -12,12 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" PyTorch Starcoder (GPT with Multi-Query Attention, RoPe, SWA and GQA).
+"""PyTorch Starcoder (GPT with Multi-Query Attention, RoPe, SWA and GQA).
 
 Some dependencies to update before using:
  - install `torch>=2.0`
  - install `flash-attn>=2.5.0`
- """
+"""
 
 import inspect
 import math
@@ -1329,9 +1329,9 @@ class GPTModel(nn.Module):
                 "bias": False,
                 # TODO @thomasw21: refactor so that we store that default in a single place.
                 "mode": self.tp_mode,
-                "async_communication": parallel_config.tp_linear_async_communication
-                if parallel_config is not None
-                else False,
+                "async_communication": (
+                    parallel_config.tp_linear_async_communication if parallel_config is not None else False
+                ),
             },
             module_input_keys={"x"},
             module_output_keys={"logits"},
@@ -1549,9 +1549,11 @@ class Starcoder2ForTraining(NanotronModel):
             initialized_parameters.add(full_param_name)
 
         assert initialized_parameters == {
-            param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
-            if param.is_tied
-            else name
+            (
+                param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
+                if param.is_tied
+                else name
+            )
             for name, param in model.named_parameters()
         }, f"Somehow the initialized set of parameters don't match:\n - Expected: { {name for name, _ in model.named_parameters()} }\n - Got: {initialized_parameters}"
 

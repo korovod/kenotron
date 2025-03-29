@@ -84,20 +84,19 @@ def local_ranks_zero_first(group: Optional[dist.ProcessGroup] = None):
 
 @contextmanager
 def nccl_timeout_override(timeout_ms: int):
-    """Context manager that temporarily increases the NCCL timeout.
-    """
+    """Context manager that temporarily increases the NCCL timeout."""
     # Save the original timeout value
-    original_timeout = os.environ.get('NCCL_TIMEOUT_MS', None)
-    os.environ['NCCL_TIMEOUT_MS'] = str(timeout_ms)
+    original_timeout = os.environ.get("NCCL_TIMEOUT_MS", None)
+    os.environ["NCCL_TIMEOUT_MS"] = str(timeout_ms)
 
     try:
         yield
     finally:
         # Restore the original timeout value
         if original_timeout is not None:
-            os.environ['NCCL_TIMEOUT_MS'] = original_timeout
+            os.environ["NCCL_TIMEOUT_MS"] = original_timeout
         else:
-            del os.environ['NCCL_TIMEOUT_MS']
+            del os.environ["NCCL_TIMEOUT_MS"]
 
 
 def checkpoint_method(attr_name: str):

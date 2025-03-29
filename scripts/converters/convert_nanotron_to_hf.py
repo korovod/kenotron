@@ -1,14 +1,19 @@
 """
 torchrun --nproc-per-node 1 tools/converters/convert_nanotron_to_hf.py --nanotron-checkpoint-path checkpoints/nanotron_pretrained_checkpoints/Nanotron-Llama-3.2-3B --hugging-face-checkpoint-path checkpoints/huggingface_converted/Converted-Nanotron-Llama-3.2-3B
 """
+
 import argparse
 import os
 from dataclasses import asdict
 from pathlib import Path
 
 import torch
+from tqdm import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers.models.llama import LlamaConfig as LlamaConfigHF
+
 from nanotron import logging
-from nanotron.config import Config, LoggingArgs, ParallelismArgs, CheckpointsArgs, get_config_from_file
+from nanotron.config import CheckpointsArgs, Config, LoggingArgs, ParallelismArgs, get_config_from_file
 from nanotron.logging import log_rank, set_ranks_logging_level
 from nanotron.models import build_model
 from nanotron.models.llama import LlamaForTraining
@@ -16,14 +21,9 @@ from nanotron.parallel import ParallelContext
 from nanotron.parallel.parameters import sanity_check
 from nanotron.serialize import load_weights
 from nanotron.serialize.engine import (
-    TorchCheckpointEngine,
-    DataStatesCheckpointEngine,
     create_checkpoint_engine_class,
 )
 from nanotron.trainer import mark_tied_parameters
-from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from transformers.models.llama import LlamaConfig as LlamaConfigHF
 
 logger = logging.get_logger(__name__)
 
@@ -142,8 +142,8 @@ def main(args):
             == hf_model.model.embed_tokens.weight.shape
         )
         hf_model.model.embed_tokens.weight.copy_(
-                nanotron_model.model.token_position_embeddings.pp_block.token_embedding.weight
-            )
+            nanotron_model.model.token_position_embeddings.pp_block.token_embedding.weight
+        )
 
         # Decoder layers
         for i in tqdm(
@@ -157,8 +157,8 @@ def main(args):
                 == nanotron_model.model.decoder[i].pp_block.input_layernorm.weight.shape
             )
             hf_model.model.layers[i].input_layernorm.weight.copy_(
-                    nanotron_model.model.decoder[i].pp_block.input_layernorm.weight
-                )
+                nanotron_model.model.decoder[i].pp_block.input_layernorm.weight
+            )
 
             # Self attn
             # Split Nanotrn qkv projection into q, k, v
@@ -184,14 +184,17 @@ def main(args):
                 == nanotron_model.model.decoder[i].pp_block.attn.o_proj.weight.shape
             )
             hf_model.model.layers[i].self_attn.o_proj.weight.copy_(
-                    nanotron_model.model.decoder[i].pp_block.attn.o_proj.weight
-                )
+                nanotron_model.model.decoder[i].pp_block.attn.o_proj.weight
+            )
 
             # MLP
             ## Gate Up Proj
             gate_proj, up_proj = torch.split(
                 nanotron_model.model.decoder[i].pp_block.mlp.gate_up_proj.weight,
-                split_size_or_sections=[nanotron_llama_config.intermediate_size, nanotron_llama_config.intermediate_size],
+                split_size_or_sections=[
+                    nanotron_llama_config.intermediate_size,
+                    nanotron_llama_config.intermediate_size,
+                ],
             )
             assert gate_proj.shape == hf_model.model.layers[i].mlp.gate_proj.weight.shape
             assert up_proj.shape == hf_model.model.layers[i].mlp.up_proj.weight.shape
@@ -205,8 +208,8 @@ def main(args):
                 == nanotron_model.model.decoder[i].pp_block.mlp.down_proj.weight.shape
             )
             hf_model.model.layers[i].mlp.down_proj.weight.copy_(
-                    nanotron_model.model.decoder[i].pp_block.mlp.down_proj.weight
-                )
+                nanotron_model.model.decoder[i].pp_block.mlp.down_proj.weight
+            )
 
             # Post attn layer norm
             assert (
@@ -214,8 +217,8 @@ def main(args):
                 == nanotron_model.model.decoder[i].pp_block.post_attention_layernorm.weight.shape
             )
             hf_model.model.layers[i].post_attention_layernorm.weight.copy_(
-                    nanotron_model.model.decoder[i].pp_block.post_attention_layernorm.weight
-                )
+                nanotron_model.model.decoder[i].pp_block.post_attention_layernorm.weight
+            )
 
         # Last layer norm
         log_rank("Copying Final Layer Norm...", logger=logger, level=logging.INFO, rank=0)

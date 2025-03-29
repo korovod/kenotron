@@ -98,7 +98,7 @@ def save(
                 optimizer=optimizer,
                 parallel_context=parallel_context,
                 root_folder=root_folder,
-                checkpoint_engine=checkpoint_engine
+                checkpoint_engine=checkpoint_engine,
             )
     except Exception as e:
         log_rank(

@@ -4,9 +4,10 @@ import torch.distributed as dist
 from datasets import Dataset
 from helpers.llama import TINY_LLAMA_CONFIG, create_llama_from_config, get_llama_training_config
 from helpers.utils import init_distributed, rerun_if_address_is_in_use
+from transformers import AutoTokenizer
+
 from nanotron.config import ModelArgs, RandomInit
 from nanotron.parallel import ParallelContext
-from transformers import AutoTokenizer
 
 
 def create_sft_dataset(tokenizer, sequence_length=16, num_samples=10):

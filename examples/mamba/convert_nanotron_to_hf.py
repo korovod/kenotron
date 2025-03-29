@@ -12,6 +12,8 @@ import torch
 import yaml
 from config import MambaModelConfig
 from mamba import MambaForTraining
+from transformers import AutoTokenizer, MambaConfig, MambaForCausalLM
+
 from nanotron import logging
 from nanotron.config import (
     AllForwardAllBackwardPipelineEngine,
@@ -22,7 +24,6 @@ from nanotron.models import build_model, init_on_device_and_dtype
 from nanotron.parallel import ParallelContext
 from nanotron.serialize import load_weights
 from nanotron.trainer import mark_tied_parameters
-from transformers import AutoTokenizer, MambaConfig, MambaForCausalLM
 
 logger = logging.get_logger(__name__)
 

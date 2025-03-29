@@ -19,40 +19,31 @@ class GradientAccumulator(ABC):
     fp32_grads_allreduce_handle: Optional[torch.futures.Future]
 
     @abstractmethod
-    def __init__(self, named_parameters: Iterator[Tuple[str, NanotronParameter]]):
-        ...
+    def __init__(self, named_parameters: Iterator[Tuple[str, NanotronParameter]]): ...
 
     @abstractmethod
-    def backward(self, loss: torch.Tensor):
-        ...
+    def backward(self, loss: torch.Tensor): ...
 
     @abstractmethod
-    def step(self):
-        ...
+    def step(self): ...
 
     @abstractmethod
-    def sync_gradients_across_dp(self, dp_pg: dist.ProcessGroup, reduce_op: dist.ReduceOp, reduce_scatter: bool):
-        ...
+    def sync_gradients_across_dp(self, dp_pg: dist.ProcessGroup, reduce_op: dist.ReduceOp, reduce_scatter: bool): ...
 
     @abstractmethod
-    def zero_grad(self):
-        ...
+    def zero_grad(self): ...
 
     @abstractmethod
-    def get_parameter_for_optimizer(self, name: str) -> NanotronParameter:
-        ...
+    def get_parameter_for_optimizer(self, name: str) -> NanotronParameter: ...
 
     @abstractmethod
-    def get_grad_buffer(self, name: str) -> torch.Tensor:
-        ...
+    def get_grad_buffer(self, name: str) -> torch.Tensor: ...
 
     @abstractmethod
-    def state_dict(self) -> Dict[str, torch.Tensor]:
-        ...
+    def state_dict(self) -> Dict[str, torch.Tensor]: ...
 
     @abstractmethod
-    def load_state_dict(self, state_dict: torch.Tensor):
-        ...
+    def load_state_dict(self, state_dict: torch.Tensor): ...
 
 
 class FP32GradientAccumulator(GradientAccumulator):
@@ -354,9 +345,11 @@ def get_fp32_accum_hook(
             device = grad_buffer_tensor_list[0].device
             dtype = grad_buffer_tensor_list[0].dtype
             output_tensor_list = [
-                grad_buffer[slice(*accumulator.param_name_to_offsets[param_id_to_name[id(param)]])]
-                if param_id_to_name[id(param)] in accumulator.param_name_to_offsets
-                else torch.empty(0, dtype=dtype, device=device)
+                (
+                    grad_buffer[slice(*accumulator.param_name_to_offsets[param_id_to_name[id(param)]])]
+                    if param_id_to_name[id(param)] in accumulator.param_name_to_offsets
+                    else torch.empty(0, dtype=dtype, device=device)
+                )
                 for grad_buffer, param in zip(grad_buffer_tensor_list, bucket.parameters())
             ]
             input_tensor_lists = [

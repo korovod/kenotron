@@ -1,7 +1,9 @@
-""" Example python script to generate a YAML config file which can be used to run a training with nanotron. Refer to "examples" section in the `/README.md` for more information."""
+"""Example python script to generate a YAML config file which can be used to run a training with nanotron. Refer to "examples" section in the `/README.md` for more information."""
+
 import os
 
 from nanotron.config import (
+    AdamWOptimizerArgs,
     CheckpointsArgs,
     Config,
     DataArgs,
@@ -17,7 +19,6 @@ from nanotron.config import (
     RandomInit,
     TokenizerArgs,
     TokensArgs,
-    AdamWOptimizerArgs,
 )
 from nanotron.logging import human_format
 

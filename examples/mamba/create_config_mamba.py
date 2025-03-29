@@ -1,9 +1,11 @@
-""" Example python script to generate a YAML config file which can be used to run a training with nanotron. Refer to "examples" section in the `/README.md` for more information."""
+"""Example python script to generate a YAML config file which can be used to run a training with nanotron. Refer to "examples" section in the `/README.md` for more information."""
+
 import math
 import os
 import uuid
 
 from config import MambaConfig, MambaInit, MambaModelConfig
+
 from nanotron.config import (
     AdamWOptimizerArgs,
     CheckpointsArgs,

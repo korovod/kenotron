@@ -3,6 +3,8 @@ from typing import Dict, Optional, Union
 
 import torch
 import torch.nn as nn
+from transformers import LlamaConfig
+
 from nanotron import logging
 from nanotron.config import ParallelismArgs
 from nanotron.models import NanotronModel
@@ -17,7 +19,6 @@ from nanotron.parallel.tensor_parallel.nn import (
     TensorParallelEmbedding,
     TensorParallelRowLinear,
 )
-from transformers import LlamaConfig
 
 from .doremi_context import DoReMiContext
 from .loss import CrossEntropyWithPerDomainLoss, DoReMiLossForProxyTraining
@@ -94,9 +95,11 @@ class BaseLLaMa(NanotronModel):
             initialized_parameters.add(full_param_name)
 
         assert initialized_parameters == {
-            param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
-            if param.is_tied
-            else name
+            (
+                param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
+                if param.is_tied
+                else name
+            )
             for name, param in model.named_parameters()
         }, f"Somehow the initialized set of parameters don't match:\n - Expected: { {name for name, _ in model.named_parameters()} }\n - Got: {initialized_parameters}"
 

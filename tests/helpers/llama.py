@@ -1,5 +1,7 @@
 import torch
+
 from nanotron.config import (
+    AdamWOptimizerArgs,
     AllForwardAllBackwardPipelineEngine,
     CheckpointsArgs,
     Config,
@@ -15,7 +17,6 @@ from nanotron.config import (
     TensorParallelLinearMode,
     TokenizerArgs,
     TokensArgs,
-    AdamWOptimizerArgs,
 )
 from nanotron.config.config import PretrainDatasetsArgs
 from nanotron.models import build_model
@@ -108,7 +109,6 @@ def get_llama_training_config(model_config: ModelArgs):
 def create_llama_from_config(
     model_config: LlamaConfig, device: torch.device, parallel_context: ParallelContext
 ) -> LlamaForTraining:
-
     """
     Creates and returns a nanotron model.
     If `model_config` is None, then `checkpoint_path` must be set, in which case

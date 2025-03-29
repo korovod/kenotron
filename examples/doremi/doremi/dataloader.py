@@ -5,6 +5,10 @@ from typing import Dict, List, Union
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
+from tqdm import tqdm
+
 from nanotron import distributed as dist
 from nanotron import logging
 from nanotron.data.dataloader import get_dataloader_worker_init
@@ -12,9 +16,6 @@ from nanotron.parallel import ParallelContext
 from nanotron.parallel.pipeline_parallel.tensor_pointer import TensorPointer
 from nanotron.parallel.pipeline_parallel.utils import get_input_output_pp_ranks
 from nanotron.trainer import DistributedTrainer
-from torch.utils.data import DataLoader
-from torch.utils.data.distributed import DistributedSampler
-from tqdm import tqdm
 
 from .doremi_context import DoReMiContext
 
@@ -267,7 +268,7 @@ class DistributedSamplerForDoReMi(DistributedSampler):
         while total_batch_size != target_total_size:
             diff = target_total_size - total_batch_size
 
-            # NOTE: Randomly select a domain to increase/decrase a sample
+            # NOTE: Randomly select a domain to increase/decrease a sample
             # to match the target_total_size
             eligible_indices = torch.nonzero(torch.tensor(domain_batch_sizes) > 1).view(-1)
             random_index = torch.randint(

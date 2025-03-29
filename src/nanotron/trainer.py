@@ -95,9 +95,7 @@ from nanotron.serialize import (
 )
 from nanotron.serialize.engine import (
     TorchCheckpointEngine,
-    DataStatesCheckpointEngine,
     create_checkpoint_engine_class,
-    get_checkpoint_engine_type_from_instance,
 )
 from nanotron.serialize.metadata import DataStageMetadata, TrainingMetadata
 from nanotron.serialize.optimizer import load_optimizer, state_dict_to_device
@@ -142,7 +140,9 @@ class DistributedTrainer:
             config_or_config_file, config_class=config_class, model_config_class=model_config_class
         )
         self.model_config = self.config.model.model_config
-        self.checkpoint_engine_type = self.config.checkpoints.checkpointing_engine if self.config.checkpoints else CheckpointingEngineType.TORCH
+        self.checkpoint_engine_type = (
+            self.config.checkpoints.checkpointing_engine if self.config.checkpoints else CheckpointingEngineType.TORCH
+        )
 
         if model_class is not None:
             CONFIG_TO_MODEL_CLASS[self.model_config.__class__.__name__] = model_class
@@ -172,7 +172,11 @@ class DistributedTrainer:
             self.checkpoint_engine = create_checkpoint_engine_class(self.checkpoint_engine_type)(
                 self.parallel_context,
                 # TODO @tbouvier: make it generic to all checkpointing engines
-                config=asdict(self.config.checkpoints.datastates) if self.config.checkpoints and self.config.checkpoints.datastates else None,
+                config=(
+                    asdict(self.config.checkpoints.datastates)
+                    if self.config.checkpoints and self.config.checkpoints.datastates
+                    else None
+                ),
             )
         except ImportError as e:
             log_rank(
@@ -250,7 +254,7 @@ class DistributedTrainer:
                 checkpoint_engine_type=self.checkpoint_engine_type,
                 checkpoint_engine_version=self.checkpoint_engine.CHECKPOINT_VERSION,
                 parallel_context=self.parallel_context,
-                root_folder=self.init_checkpoint_path
+                root_folder=self.init_checkpoint_path,
             )
             assert isinstance(checkpoint_metadata.metas, TrainingMetadata)
             log_rank(str(checkpoint_metadata), logger=logger, level=logging.INFO, rank=0)

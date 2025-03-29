@@ -7,10 +7,13 @@ export CUDA_DEVICE_MAX_CONNECTIONS=1 # important for some distributed operations
 torchrun --nproc_per_node=8 run_train.py --config-file examples/config_tiny_llama.yaml
 ```
 """
+
 import argparse
 from typing import Dict, cast
 
 import numpy as np
+from torch.utils.data import DataLoader
+
 from nanotron import logging
 from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, SFTDatasetsArgs
 from nanotron.data.dataloader import (
@@ -31,7 +34,6 @@ from nanotron.logging import log_rank
 from nanotron.parallel.pipeline_parallel.utils import get_input_output_pp_ranks
 from nanotron.trainer import DistributedTrainer
 from nanotron.utils import main_rank_first, nccl_timeout_override
-from torch.utils.data import DataLoader
 
 try:
     from huggingface_hub import __version__ as hf_hub_version
@@ -246,9 +248,10 @@ def get_dataloader(trainer: DistributedTrainer) -> Dict[str, DataLoader]:
 def log_libraries_versions():
     import datasets
     import flash_attn
-    import nanotron
     import torch
     import transformers
+
+    import nanotron
 
     log_rank("\nLibraries versions:", logger=logger, level=logging.INFO, rank=0)
     log_rank(f"nanotron version: {nanotron.__version__}", logger=logger, level=logging.INFO, rank=0)

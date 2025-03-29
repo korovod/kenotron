@@ -1,15 +1,15 @@
+import ctypes
+import json
+import pickle
 from abc import ABC, abstractmethod
 from collections import OrderedDict, deque
 from concurrent.futures import ThreadPoolExecutor
-from packaging.version import Version
 from pathlib import Path
-from typing import Any, Optional, Type, Dict
+from typing import Any, Dict, Optional, Type
 
-import ctypes
-import json
 import numpy as np
-import pickle
 import torch
+from packaging.version import Version
 from safetensors.torch import safe_open, save_file
 
 from nanotron import distributed as dist
@@ -63,7 +63,9 @@ class TorchCheckpointEngine(CheckpointEngine):
         logger.debug(f"Saving checkpoint {path}...")
 
         if "data" in state_dict:
-            save_file(tensors=state_dict, filename=path, metadata=metadata.to_str_dict() if metadata is not None else {})
+            save_file(
+                tensors=state_dict, filename=path, metadata=metadata.to_str_dict() if metadata is not None else {}
+            )
         else:
             self._save_unsafe(state_dict, path)
 
@@ -95,24 +97,22 @@ class DataStatesCheckpointEngine(CheckpointEngine):
             raise e
 
         if not torch.cuda.is_available():
-            raise RuntimeError(f"[DataStates] CUDA is not available. Make sure CUDA drivers are installed and GPU is accessible.")
+            raise RuntimeError(
+                "[DataStates] CUDA is not available. Make sure CUDA drivers are installed and GPU is accessible."
+            )
 
-        default_config = {
-            "host_cache_size": 16, # in GB
-            "parser_threads": 2,
-            "pin_host_cache": True
-        }
-        merged_config = default_config.copy() # Start with the default config
+        default_config = {"host_cache_size": 16, "parser_threads": 2, "pin_host_cache": True}  # in GB
+        merged_config = default_config.copy()  # Start with the default config
         if config is not None:
             merged_config.update(config)
-        host_cache_size = int(merged_config["host_cache_size"] * (1 << 30)) # from GB to Bytes
+        host_cache_size = int(merged_config["host_cache_size"] * (1 << 30))  # from GB to Bytes
 
         self.executor = ThreadPoolExecutor(max_workers=merged_config["parser_threads"])
         try:
             self.engine = CkptEngine(
                 host_cache_size,
-                int(torch.cuda.current_device()), # local gpu id
-                dist.get_rank(self.parallel_context.world_pg), # global rank
+                int(torch.cuda.current_device()),  # local gpu id
+                dist.get_rank(self.parallel_context.world_pg),  # global rank
             )
         except Exception as e:
             raise Exception(f"[DataStates] Got an exception during DataStates init: {e}")
@@ -121,11 +121,15 @@ class DataStatesCheckpointEngine(CheckpointEngine):
         logger.debug(f"[DataStates] Saving checkpoint {path}...")
 
         if not isinstance(state_dict, (dict, OrderedDict, RandomStates)):
-            raise Exception(f"[DataStates] state_dict given to checkpoint must be a dictionary. Passed {type(state_dict)} instead for {path}.")
+            raise Exception(
+                f"[DataStates] state_dict given to checkpoint must be a dictionary. Passed {type(state_dict)} instead for {path}."
+            )
 
         if metadata is not None:
             if "data" not in state_dict:
-                raise Exception(f"The state_dict given to checkpoint must contain a data field as tensor metadata was passed")
+                raise Exception(
+                    "The state_dict given to checkpoint must contain a data field as tensor metadata was passed"
+                )
 
         header = {}
         async_copies = {}
@@ -148,22 +152,19 @@ class DataStatesCheckpointEngine(CheckpointEngine):
                         header[key].update(**(metadata.to_str_dict() if metadata is not None else {}))
 
                     data = data.contiguous()
-                    async_copies[key] = {
-                        "tensor": data,
-                        "file_offset": _start_tensor_offset
-                    }
+                    async_copies[key] = {"tensor": data, "file_offset": _start_tensor_offset}
                     _start_tensor_offset = _end_tensor_offset
                     snapshot = f"TENSOR{KEY_SEPARATOR}{key}"
 
                 elif isinstance(data, list):
                     snapshot = [None] * len(data)
-                    for (idx, ele) in enumerate(data):
+                    for idx, ele in enumerate(data):
                         new_key = f"{key}{KEY_SEPARATOR}{idx}" if len(key) else f"{idx}"
                         snapshot[idx] = _parse_state(new_key, ele)
 
                 elif isinstance(data, (dict, OrderedDict)):
                     snapshot = {}
-                    for (k, v) in data.items():
+                    for k, v in data.items():
                         new_key = f"{key}{KEY_SEPARATOR}{k}" if len(key) else f"{k}"
                         snapshot[k] = _parse_state(new_key, v)
 
@@ -178,13 +179,15 @@ class DataStatesCheckpointEngine(CheckpointEngine):
         lean_state_dict = pickle.dumps(_parse_state("", state_dict), protocol=pickle.HIGHEST_PROTOCOL)
         _end_tensor_offset += len(lean_state_dict)
 
-        header.update({
-            "datastates_metadata": {
-                "data_offsets": [_start_tensor_offset, _end_tensor_offset],
+        header.update(
+            {
+                "datastates_metadata": {
+                    "data_offsets": [_start_tensor_offset, _end_tensor_offset],
+                }
             }
-        })
+        )
         enc_header = json.dumps(header).encode("utf-8")
-        enc_header_size = len(enc_header).to_bytes(SIZE_UINT64, 'little') # force the header size to take 8 bytes
+        enc_header_size = len(enc_header).to_bytes(SIZE_UINT64, "little")  # force the header size to take 8 bytes
         metadata_size = len(enc_header_size) + len(enc_header)
 
         # Launch asynchronous copies
@@ -196,7 +199,7 @@ class DataStatesCheckpointEngine(CheckpointEngine):
 
         self.engine.async_save(async_ckpt_list)
 
-        with open(path, 'wb') as f:
+        with open(path, "wb") as f:
             f.seek(0)
             f.write(enc_header_size)
             f.write(enc_header)
@@ -210,29 +213,28 @@ class DataStatesCheckpointEngine(CheckpointEngine):
 
     def load(self, path: Path, framework="pt", device: str = "cpu") -> Any:
         try:
-            version = 0
-            f = open(path, 'rb')
+            f = open(path, "rb")
             f.seek(0)
 
             header_size_bytes = f.read(SIZE_UINT64)
-            header_size = int.from_bytes(header_size_bytes, 'little')
+            header_size = int.from_bytes(header_size_bytes, "little")
             metadata_size = header_size + SIZE_UINT64
             header = json.loads(f.read(header_size))
 
             [start_offset, end_offset] = np.add(header["datastates_metadata"]["data_offsets"], metadata_size)
-            del(header["datastates_metadata"])
+            del header["datastates_metadata"]
 
             f.seek(start_offset)
             data = pickle.loads(f.read(end_offset - start_offset))
 
             try:
-                #restore_list = []
+                # restore_list = []
 
                 for k, v in header.items():
                     split_k = deque(k.split(KEY_SEPARATOR))
                     dtype = v["dtype"]
                     if dtype.startswith("torch"):
-                        dtype = dtype.replace('torch.', '')
+                        dtype = dtype.replace("torch.", "")
                     shape = v["shape"]
                     [start_offset, end_offset] = np.add(v["data_offsets"], metadata_size)
 
@@ -248,15 +250,15 @@ class DataStatesCheckpointEngine(CheckpointEngine):
                     if dest != f"TENSOR{KEY_SEPARATOR}{k}":
                         raise Exception(f"[DataStates] The key in header {k} does not match key at location {dest}")
 
-                    #tensor_restored = torch.zeros(size=tuple(shape), dtype=getattr(torch, dtype))
-                    #restore_list.append((version, tensor_restored, start_offset, str(path)))
+                    # tensor_restored = torch.zeros(size=tuple(shape), dtype=getattr(torch, dtype))
+                    # restore_list.append((version, tensor_restored, start_offset, str(path)))
 
                     f.seek(start_offset)
                     buffer = f.read(end_offset - start_offset)
                     tensor_restored = torch.frombuffer(buffer, dtype=getattr(torch, dtype)).reshape(tuple(shape))
                     pre_dest[sub_k] = tensor_restored
 
-                #self.engine.load(restore_list)
+                # self.engine.load(restore_list)
 
             except Exception as exc:
                 raise Exception(f"[DataStates] Got error with tensor loading {dtype}, {shape}, {exc}")
@@ -282,10 +284,12 @@ _CONFIG_TO_CHECKPOINT_ENGINE_CLASS: Dict[CheckpointingEngineType, Type[Checkpoin
     CheckpointingEngineType.DATASTATES: DataStatesCheckpointEngine,
 }
 
+
 def create_checkpoint_engine_class(engine_type: CheckpointingEngineType) -> Type[CheckpointEngine]:
     if engine_type not in _CONFIG_TO_CHECKPOINT_ENGINE_CLASS:
         raise ValueError(f"Unknown checkpoint engine: {engine_type}")
     return _CONFIG_TO_CHECKPOINT_ENGINE_CLASS[engine_type]
+
 
 def get_checkpoint_engine_type_from_instance(engine: CheckpointEngine) -> CheckpointingEngineType:
     engine_class = type(engine)

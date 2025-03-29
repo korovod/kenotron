@@ -14,10 +14,8 @@ class InheritFromOtherOptimizer(BaseOptimizer):
         if isinstance(optimizer, torch.optim.Optimizer):
             # Replace the load_state_dict method with our custom implementation that enables CPU offload
             original_load_state_dict = optimizer.load_state_dict
-            optimizer.load_state_dict = (
-                lambda state_dict, map_location=None: custom_load_state_dict(
-                    optimizer, state_dict, map_location=map_location
-                )
+            optimizer.load_state_dict = lambda state_dict, map_location=None: (
+                custom_load_state_dict(optimizer, state_dict, map_location=map_location)
                 if map_location is not None
                 else original_load_state_dict(state_dict)
             )

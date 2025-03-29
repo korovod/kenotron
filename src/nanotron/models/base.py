@@ -58,8 +58,7 @@ class NanotronModel(nn.Module, metaclass=ABCMeta):
         yield from params_gen()
 
     @abstractmethod
-    def init_model_randomly(self, config):
-        ...
+    def init_model_randomly(self, config): ...
 
     def tie_custom_params(self) -> None:
         """Tie custom parameters. For example for MQA marks kv heads as tied."""
@@ -71,7 +70,7 @@ class NanotronModel(nn.Module, metaclass=ABCMeta):
         Example for GPT2 model: ["model.token_position_embeddings.pp_block.token_embedding.weight", "model.lm_head.pp_block.weight"]
         """
         return []
-    
+
     def get_named_params_without_weight_decay(self) -> List[str]:
         """Return a list of named parameters that should not have weight decay applied to them."""
         return []

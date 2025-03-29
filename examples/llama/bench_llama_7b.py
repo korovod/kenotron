@@ -5,6 +5,7 @@ Benchmarking script for the Llama-2-7b model
 import os
 
 from nanotron.config import (
+    AdamWOptimizerArgs,
     CheckpointsArgs,
     Config,
     DataArgs,
@@ -19,7 +20,6 @@ from nanotron.config import (
     RandomInit,
     TokenizerArgs,
     TokensArgs,
-    AdamWOptimizerArgs,
 )
 from nanotron.logging import human_format
 

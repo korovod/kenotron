@@ -15,7 +15,7 @@
 """PyTorch LLaMa model."""
 
 import math
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 from torch import nn
@@ -47,6 +47,7 @@ from nanotron.utils import checkpoint_method
 
 logger = logging.get_logger(__name__)
 
+
 # NOTE(tj.solergibert) Copied from: https://github.com/huggingface/transformers/blob/2b053fdf1a638de17faa8791d96efac5e2507be7/src/transformers/modeling_rope_utils.py#L29
 def _compute_default_rope_parameters(config: LlamaConfig) -> Tuple["torch.Tensor", float]:
     """
@@ -64,6 +65,7 @@ def _compute_default_rope_parameters(config: LlamaConfig) -> Tuple["torch.Tensor
     # Compute the inverse frequencies
     inv_freq = 1.0 / (base ** (torch.arange(0, head_dim, 2, dtype=torch.int64).float() / head_dim))
     return inv_freq
+
 
 # NOTE(tj.solergibert) Copied from: https://github.com/huggingface/transformers/blob/2b053fdf1a638de17faa8791d96efac5e2507be7/src/transformers/modeling_rope_utils.py#L310
 def _compute_llama3_parameters(config: LlamaConfig) -> Tuple["torch.Tensor", float]:
@@ -102,17 +104,16 @@ def _compute_llama3_parameters(config: LlamaConfig) -> Tuple["torch.Tensor", flo
 
     return inv_freq_llama
 
+
 # NOTE(tj.solergibert) Copied from: https://github.com/huggingface/transformers/blob/2b053fdf1a638de17faa8791d96efac5e2507be7/src/transformers/modeling_rope_utils.py#L353-L363
 ROPE_INIT_FUNCTIONS = {
     "default": _compute_default_rope_parameters,
     "llama3": _compute_llama3_parameters,
 }
 
+
 class LlamaRotaryEmbedding(nn.Module):
-    def __init__(
-        self,
-        config: LlamaConfig
-    ):
+    def __init__(self, config: LlamaConfig):
         super().__init__()
         self.rope_type = config.rope_scaling.get("rope_type", "default") if config.rope_scaling else "default"
         self.max_seq_len_cached = config.max_position_embeddings
@@ -125,7 +126,7 @@ class LlamaRotaryEmbedding(nn.Module):
         self.register_buffer("inv_freq", inv_freq, persistent=False)
         self.original_inv_freq = self.inv_freq
 
-        self.end = config.max_position_embeddings # NOTE(tj.solergibert) To support inference
+        self.end = config.max_position_embeddings  # NOTE(tj.solergibert) To support inference
 
     @torch.no_grad()
     def forward(
@@ -145,7 +146,8 @@ class LlamaRotaryEmbedding(nn.Module):
             cos = emb.cos()
             sin = emb.sin()
         return cos.to(dtype=x.dtype), sin.to(dtype=x.dtype)
-    
+
+
 def rotate_half(x):
     """Rotates half the hidden dims of the input."""
     x1 = x[..., : x.shape[-1] // 2]
@@ -176,6 +178,7 @@ def apply_rotary_pos_emb(q, k, cos, sin, unsqueeze_dim=1):
     q_embed = (q * cos) + (rotate_half(q) * sin)
     k_embed = (k * cos) + (rotate_half(k) * sin)
     return q_embed, k_embed
+
 
 class GLUActivation(nn.Module):
     def __init__(self, act_fn_name: str):
@@ -304,7 +307,6 @@ class CausalSelfAttention(nn.Module, AttachableStore):
         tp_pg: dist.ProcessGroup,
         layer_idx: int,
     ):
-        from flash_attn.layers.rotary import RotaryEmbedding as FlashRotaryEmbedding
 
         super().__init__()
         # Tensor parallel considerations: We split tensors along head dimension
@@ -447,9 +449,7 @@ class CausalSelfAttention(nn.Module, AttachableStore):
             # non interleaved version.
             else:
                 cos, sin = self.rotary_emb(value_states, position_ids)
-                query_states, key_states = apply_rotary_pos_emb(
-                    query_states, key_states, cos, sin
-                )
+                query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
 
             if "key" not in store:
                 # First inference iteration (Prefill)
@@ -609,7 +609,7 @@ class CausalSelfAttention(nn.Module, AttachableStore):
             query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
             query_states = query_states.transpose(1, 2)
             key_states = key_states.transpose(1, 2)
-            
+
             attention_output = self.attention(
                 query_states=query_states,
                 key_states=key_states,
@@ -1007,9 +1007,11 @@ class LlamaForTraining(NanotronModel):
             initialized_parameters.add(full_param_name)
 
         assert initialized_parameters == {
-            param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
-            if param.is_tied
-            else name
+            (
+                param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
+                if param.is_tied
+                else name
+            )
             for name, param in model.named_parameters()
         }, f"Somehow the initialized set of parameters don't match:\n - Expected: { {name for name, _ in model.named_parameters()} }\n - Got: {initialized_parameters}"
 

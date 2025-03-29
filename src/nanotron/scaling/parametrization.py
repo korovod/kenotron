@@ -3,6 +3,9 @@ from abc import abstractmethod
 from enum import Enum, auto
 from typing import Dict
 
+from torch import nn
+from torch.nn import init
+
 from nanotron.config import ModelArgs
 from nanotron.nn.layer_norm import TritonRMSNorm
 from nanotron.parallel.tensor_parallel.nn import (
@@ -10,8 +13,6 @@ from nanotron.parallel.tensor_parallel.nn import (
     TensorParallelEmbedding,
     TensorParallelRowLinear,
 )
-from torch import nn
-from torch.nn import init
 
 
 class ParametrizationMethod(Enum):

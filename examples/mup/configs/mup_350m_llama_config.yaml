@@ -132,7 +132,7 @@ lighteval:
   # slurm_script_dir: /fsx/phuc/new_workspace/experiments/mup_for_mamba2/test_mamba350M_tp4_917cfc66/lighteval/slurm_scripts
   # slurm_template: /fsx/phuc/new_workspace/experiments/mup_for_mamba2/test_mamba350M_tp4_917cfc66/run_eval.slurm.jinja
   tasks:
-    # custom_tasks: brrr.lighteval.custom_tasks
+    # custom_tasks: Nanotron.lighteval.custom_tasks
     dataset_loading_processes: 8
     max_samples: 1000
     multichoice_continuations_start_space: null

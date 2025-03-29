@@ -54,7 +54,7 @@ def get_weight_from_hf(
     get_grad: bool = False,
     param_is_tp_sharded: bool = False,
 ) -> torch.Tensor:
-    """From our brrr implementation, we get the equivalent tensor in transformers implementation"""
+    """From our Nanotron implementation, we get the equivalent tensor in transformers implementation"""
 
     def _interleave_pattern(N):
         """
@@ -96,7 +96,7 @@ def get_weight_from_hf(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert HF weights from states-space repo to brrr weights")
+    parser = argparse.ArgumentParser(description="Convert HF weights from states-space repo to Nanotron weights")
     parser.add_argument("--inp_path", type=str, default="state-spaces/mamba-130m-hf")
     parser.add_argument("--out_path", type=str, default="nanotron_weight")
     parser.add_argument("--dp", type=int, default=1)

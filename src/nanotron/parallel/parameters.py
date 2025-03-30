@@ -117,7 +117,7 @@ class NanotronParameter(nn.Parameter):
         if isinstance(tensor, NanotronParameter):
             # Check that we don't inherit a weird class
             # We copy in order not to make in-place operation
-            assert type(tensor) == NanotronParameter
+            assert type(tensor) is NanotronParameter
             setattr(
                 param,
                 cls.NANOTRON_PARAMETER_METADATA_ATTRIBUTE_NAME,

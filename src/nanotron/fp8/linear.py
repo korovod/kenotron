@@ -2,7 +2,6 @@ from typing import Optional, Tuple, TypedDict, Union
 
 import torch
 import torch.nn.functional as F
-import transformer_engine as te  # noqa
 from torch import nn
 
 from nanotron.fp8.constants import INITIAL_AMAX, INITIAL_SCALING_FACTOR
@@ -72,7 +71,7 @@ class _FP8Matmul(torch.autograd.Function):
     def forward(
         ctx, input: FP8Tensor, weight: FP8Tensor, fp8_meta: FP8LinearMeta, phony: torch.Tensor
     ) -> torch.Tensor:
-        if type(input) == torch.Tensor:
+        if type(input) is torch.Tensor:
             input = FP8Tensor(input, dtype=DTypes.FP8E4M3)
 
         ctx.save_for_backward(input, weight)
@@ -96,7 +95,7 @@ class _FP8Matmul(torch.autograd.Function):
         # TODO(xrsrke): investigate how does grad_output.contiguous() affect the outputs
         input, weight = ctx.saved_tensors
 
-        if type(grad_output) == torch.Tensor:
+        if type(grad_output) is torch.Tensor:
             grad_output = torch.ones_like(grad_output)
             grad_output = grad_output.contiguous()
             grad_output = FP8Tensor(grad_output, dtype=DTypes.FP8E5M2)

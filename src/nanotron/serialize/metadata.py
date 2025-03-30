@@ -89,13 +89,14 @@ class TensorMetadata:
     )
 
     def to_str_dict(self) -> Dict[str, str]:
-        return {
+        result = {
             "version": str(self.version),
         }
         if self.local_global_slices_pairs is not None:
             result["local_global_slices_pairs"] = SlicesPair.tuple_to_str(self.local_global_slices_pairs)
         if self.unsharded_shape is not None:
             result["unsharded_shape"] = str(tuple(self.unsharded_shape))
+        return result
 
     @classmethod
     def from_str_dict(cls, dictionary: Dict[str, str]) -> "TensorMetadata":

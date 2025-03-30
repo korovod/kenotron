@@ -1,5 +1,4 @@
 import torch
-import transformer_engine as te  # noqa
 
 from nanotron.fp8.constants import FP8_GPU_NAMES
 

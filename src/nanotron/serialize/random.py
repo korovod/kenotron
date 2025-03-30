@@ -24,7 +24,7 @@ def save_random_states(
     checkpoint_engine.save(random_states, filename)
 
 
-def load_random_states(parallel_context: ParallelContext, root_folder: Path):
+def load_random_states(parallel_context: ParallelContext, root_folder: Path, checkpoint_engine: CheckpointEngine):
     # TODO @thomasw21: This basically assumes that we have exactly the same topology as the one we used when saving.
     filename = (
         root_folder

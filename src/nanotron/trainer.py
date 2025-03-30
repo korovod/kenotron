@@ -35,6 +35,7 @@ from nanotron.config import (
     SpectralMupInit,
     get_config_from_file,
 )
+from nanotron.config.checkpoints_config import CheckpointingEngineType
 from nanotron.constants import MODEL_CONFIG_FILE_NAME
 from nanotron.data.dataloader import sanity_check_dataloader
 from nanotron.helpers import (

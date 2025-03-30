@@ -190,7 +190,7 @@ class CheckpointsArgs:
     checkpointing_engine: Union[str, CheckpointingEngineType] = CheckpointingEngineType.TORCH
     datastates: Optional[DataStatesArgs] = None
     save_initial_state: Optional[bool] = False
-    save_final_state: Optional[bool] = False
+    save_final_state: Optional[bool] = True
     resume_checkpoint_path: Optional[xPath] = None
     load_lr_scheduler: Optional[bool] = True
     load_optimizer: Optional[bool] = True

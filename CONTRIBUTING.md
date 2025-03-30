@@ -124,7 +124,7 @@ Follow these steps to start contributing:
 4. Set up a development environment by running the following command in a conda or a virtual environment you've created for working on this library:
 
    ```bash
-   $ uv env
+   $ uv venv
    $ uv pip install -e ".[dev]"
    $ uv pip install -e ".[test]"
    $ pre-commit install
@@ -144,7 +144,7 @@ Follow these steps to start contributing:
    below an explanation regarding the environment variable):
 
    ```bash
-   $ pytest tests/<TEST_TO_RUN>.py
+   $ python -m pytest tests/<TEST_TO_RUN>.py
    ```
 
    This target is also optimized to only work with files modified by the PR you're working on.

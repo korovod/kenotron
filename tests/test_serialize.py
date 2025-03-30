@@ -12,7 +12,7 @@ from helpers.utils import (
 from torch.nn.parallel import DistributedDataParallel
 
 from nanotron import distributed as dist
-from nanotron.constants import CHECKPOINT_VERSION
+from nanotron.config.checkpoints_config import CheckpointingEngineType
 from nanotron.optim.gradient_accumulator import FP32GradientAccumulator
 from nanotron.optim.named_optimizer import NamedOptimizer
 from nanotron.optim.optimizer_from_gradient_accumulator import (
@@ -34,11 +34,14 @@ from nanotron.serialize import (
     save_random_states,
     save_weights,
 )
+from nanotron.serialize.engine import (
+    create_checkpoint_engine_class,
+)
 from nanotron.serialize.metadata import TensorMetadata
 
 
-def test_save_and_load_with_changed_topolgy():
-    # TODO @thomasw21: We want to be able to support a change of topology mechanism
+def test_save_and_load_with_changed_topology():
+    # TODO @tbouvier: We want to be able to support a change of topology mechanism
     return
 
 
@@ -60,22 +63,30 @@ def test_save_and_load_model(tp: int, dp: int, pp: int):
 def _test_save_and_load_model(parallel_context: ParallelContext, test_context: TestContext):
     model = init_dummy_model(parallel_context=parallel_context)
     store_folder = test_context.get_auto_remove_tmp_dir()
+    checkpoint_engine = create_checkpoint_engine_class(CheckpointingEngineType.TORCH)
 
     # Save
-    save_weights(model=model, parallel_context=parallel_context, root_folder=store_folder)
+    save_weights(
+        model=model, parallel_context=parallel_context, root_folder=store_folder, checkpoint_engine=checkpoint_engine
+    )
 
     # Load
     new_model = init_dummy_model(parallel_context=parallel_context)
 
-    # Check that the newly initialised model isn't the same.
+    # Check that the newly initialized model isn't the same.
     match, msg = is_dict_equal(new_model.state_dict(), model.state_dict())
     if len(model.state_dict()) == 0:
         # Edge case where there's no parameters/buffers stored in the model.
         pass
     else:
-        assert not match, "Newly initialised model should not match."
+        assert not match, "Newly initialized model should not match."
 
-    load_weights(model=new_model, parallel_context=parallel_context, root_folder=store_folder)
+    load_weights(
+        model=new_model,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
 
     # Assert the weights are exactly the same after loading
     match, msg = is_dict_equal(new_model.state_dict(), model.state_dict())
@@ -107,6 +118,7 @@ def _test_save_and_load_optimizer(parallel_context: ParallelContext, test_contex
         named_params_or_groups=model.named_parameters(),
         optimizer_builder=lambda params: torch.optim.AdamW(params),
     )
+    checkpoint_engine = create_checkpoint_engine_class(CheckpointingEngineType.TORCH)
 
     # Train in order to update the optimizer step a few times
     data_loader = iter(dummy_infinite_data_loader(pp_pg=parallel_context.pp_pg))
@@ -124,7 +136,12 @@ def _test_save_and_load_optimizer(parallel_context: ParallelContext, test_contex
         optimizer.zero_grad()
 
     # Save optimizer
-    save_optimizer(optimizer=optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    save_optimizer(
+        optimizer=optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
     dist.barrier(parallel_context.world_pg)
 
     # Generate a new optimizer
@@ -133,14 +150,19 @@ def _test_save_and_load_optimizer(parallel_context: ParallelContext, test_contex
         optimizer_builder=lambda params: torch.optim.AdamW(params),
     )
 
-    # Check that the newly initialised optimizer isn't the same.
+    # Check that the newly initialized optimizer isn't the same.
     match, msg = is_dict_equal(optimizer.state_dict(), new_optimizer.state_dict())
     if len(optimizer.state_dict()["state"]) == 0:
         # Edge case where there's no state stored in the optimizer.
         pass
     else:
-        assert not match, "Newly initialised optimizer should not match."
-    load_optimizer(optimizer=new_optimizer, parallel_context=parallel_context, root_folder=store_folder)
+        assert not match, "Newly initialized optimizer should not match."
+    load_optimizer(
+        optimizer=new_optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
 
     # Assert the optimizer states are exactly the same after loading.
     match, msg = is_dict_equal(optimizer.state_dict(), new_optimizer.state_dict())
@@ -154,7 +176,11 @@ def _test_save_and_load_optimizer(parallel_context: ParallelContext, test_contex
 
     # Load optimizer states to CPU
     load_optimizer(
-        optimizer=cpu_optimizer, parallel_context=parallel_context, root_folder=store_folder, map_location="cpu"
+        optimizer=cpu_optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+        map_location="cpu",
     )
 
     # Get state dicts
@@ -206,6 +232,7 @@ def _test_save_zero_optimizer_and_load_optimizer(parallel_context: ParallelConte
         ),
         dp_pg=parallel_context.dp_pg,
     )
+    checkpoint_engine = create_checkpoint_engine_class(CheckpointingEngineType.TORCH)
 
     # Train in order to update the optimizer step a few times
     data_loader = iter(dummy_infinite_data_loader(pp_pg=parallel_context.pp_pg))
@@ -223,7 +250,12 @@ def _test_save_zero_optimizer_and_load_optimizer(parallel_context: ParallelConte
         optimizer.zero_grad()
 
     # Save optimizer
-    save_optimizer(optimizer=optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    save_optimizer(
+        optimizer=optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
     dist.barrier(parallel_context.world_pg)
 
     # Generate a new optimizer
@@ -236,15 +268,20 @@ def _test_save_zero_optimizer_and_load_optimizer(parallel_context: ParallelConte
         dp_pg=parallel_context.dp_pg,
     )
 
-    # Check that the newly initialised optimizer isn't the same.
+    # Check that the newly initialized optimizer isn't the same.
     match, msg = is_dict_equal(optimizer.state_dict(), new_optimizer.state_dict())
     if len(optimizer.state_dict()["state"]) == 0:
         # Edge case where there's no state stored in the optimizer.
         pass
     else:
-        assert not match, "Newly initialised optimizer should not match."
+        assert not match, "Newly initialized optimizer should not match."
 
-    load_optimizer(optimizer=new_optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    load_optimizer(
+        optimizer=new_optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
 
     # Assert the optimizer states are exactly the same after loading.
     match, msg = is_dict_equal(optimizer.state_dict(), new_optimizer.state_dict())
@@ -284,6 +321,7 @@ def _test_save_zero_optimizer_and_load_data_parallel_optimizer(
         ),
         dp_pg=parallel_context.dp_pg,
     )
+    checkpoint_engine = create_checkpoint_engine_class(CheckpointingEngineType.TORCH)
 
     # Train in order to update the optimizer step a few times
     data_loader = iter(dummy_infinite_data_loader(pp_pg=parallel_context.pp_pg))
@@ -301,7 +339,12 @@ def _test_save_zero_optimizer_and_load_data_parallel_optimizer(
         optimizer.zero_grad()
 
     # Save optimizer
-    save_optimizer(optimizer=optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    save_optimizer(
+        optimizer=optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
     dist.barrier(parallel_context.world_pg)
 
     # Generate a new optimizer
@@ -310,15 +353,20 @@ def _test_save_zero_optimizer_and_load_data_parallel_optimizer(
         optimizer_builder=lambda params: torch.optim.AdamW(params),
     )
 
-    # Check that the newly initialised optimizer isn't the same.
+    # Check that the newly initialized optimizer isn't the same.
     match, msg = is_dict_equal(optimizer.state_dict(), new_optimizer.state_dict())
     if len(optimizer.state_dict()["state"]) == 0:
         # Edge case where there's no state stored in the optimizer.
         pass
     else:
-        assert not match, "Newly initialised optimizer should not match."
+        assert not match, "Newly initialized optimizer should not match."
 
-    load_optimizer(optimizer=new_optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    load_optimizer(
+        optimizer=new_optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
 
     # TODO @thomasw21: Compare zero optimizer with non zero
     parallel_context.destroy()
@@ -351,6 +399,7 @@ def _test_save_data_parallel_optimizer_and_load_zero_optimizer(
         named_params_or_groups=model.named_parameters(),
         optimizer_builder=lambda params: torch.optim.AdamW(params),
     )
+    checkpoint_engine = create_checkpoint_engine_class(CheckpointingEngineType.TORCH)
 
     # Train in order to update the optimizer step a few times
     data_loader = iter(dummy_infinite_data_loader(pp_pg=parallel_context.pp_pg))
@@ -365,7 +414,12 @@ def _test_save_data_parallel_optimizer_and_load_zero_optimizer(
         optimizer.zero_grad()
 
     # Save optimizer
-    save_optimizer(optimizer=optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    save_optimizer(
+        optimizer=optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
     dist.barrier(parallel_context.world_pg)
 
     # Generate a new optimizer
@@ -378,15 +432,20 @@ def _test_save_data_parallel_optimizer_and_load_zero_optimizer(
         dp_pg=parallel_context.dp_pg,
     )
 
-    # Check that the newly initialised optimizer isn't the same.
+    # Check that the newly initialized optimizer isn't the same.
     match, msg = is_dict_equal(optimizer.state_dict(), new_optimizer.state_dict())
     if len(optimizer.state_dict()["state"]) == 0:
         # Edge case where there's no state stored in the optimizer.
         pass
     else:
-        assert not match, "Newly initialised optimizer should not match."
+        assert not match, "Newly initialized optimizer should not match."
 
-    load_optimizer(optimizer=new_optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    load_optimizer(
+        optimizer=new_optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
 
     # TODO @thomasw21: Compare zero optimizer with non zero
     parallel_context.destroy()
@@ -413,6 +472,7 @@ def _test_save_optimizer_with_additional_state_dict_keys(parallel_context: Paral
     dtype = torch.float16
     store_folder = test_context.get_auto_remove_tmp_dir()
     model = init_dummy_model(parallel_context=parallel_context, dtype=dtype)
+    checkpoint_engine = create_checkpoint_engine_class(CheckpointingEngineType.TORCH)
 
     if isinstance(model, DistributedDataParallel):
         # Remove the annoying "module." prefix
@@ -456,7 +516,12 @@ def _test_save_optimizer_with_additional_state_dict_keys(parallel_context: Paral
         optimizer.zero_grad()
 
     # Save optimizer
-    save_optimizer(optimizer=optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    save_optimizer(
+        optimizer=optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
     dist.barrier(parallel_context.world_pg)
 
     # Generate a new optimizer
@@ -470,14 +535,19 @@ def _test_save_optimizer_with_additional_state_dict_keys(parallel_context: Paral
     )
     new_grad_accumulator = new_optimizer.gradient_accumulator
 
-    # Check that the newly initialised optimizer isn't the same.
+    # Check that the newly initialized optimizer isn't the same.
     if len(optimizer.state_dict()["state"]) == 0:
         pass
     else:
         match, msg = is_dict_equal(optimizer.state_dict(), new_optimizer.state_dict())
-        assert not match, "Newly initialised optimizer should not match."
+        assert not match, "Newly initialized optimizer should not match."
 
-    load_optimizer(optimizer=new_optimizer, parallel_context=parallel_context, root_folder=store_folder)
+    load_optimizer(
+        optimizer=new_optimizer,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
 
     # Assert the optimizer states are exactly the same after loading.
     match, msg = is_dict_equal(optimizer.state_dict()["state"], new_optimizer.state_dict()["state"])
@@ -526,6 +596,7 @@ def _test_save_and_load_random_states(parallel_context: ParallelContext, test_co
         }
     )
     store_folder = test_context.get_auto_remove_tmp_dir()
+    checkpoint_engine = create_checkpoint_engine_class(CheckpointingEngineType.TORCH)
 
     # Check that random states are unequal between ranks (due to `my_own_random_state`)
     reference_rank = 0
@@ -538,10 +609,17 @@ def _test_save_and_load_random_states(parallel_context: ParallelContext, test_co
         assert random_states != random_statess[0]
 
     # save
-    save_random_states(random_states=random_states, parallel_context=parallel_context, root_folder=store_folder)
+    save_random_states(
+        random_states=random_states,
+        parallel_context=parallel_context,
+        root_folder=store_folder,
+        checkpoint_engine=checkpoint_engine,
+    )
 
     # load
-    new_random_states = load_random_states(parallel_context=parallel_context, root_folder=store_folder)
+    new_random_states = load_random_states(
+        parallel_context=parallel_context, root_folder=store_folder, checkpoint_engine=checkpoint_engine
+    )
     # Each rank has restored it's own random state
     assert random_states == new_random_states
 
@@ -562,8 +640,9 @@ def _test_serialize_deserialize_tensormetadata(parallel_context: ParallelContext
     )
     param = create_sharded_parameter_from_config(parameter=param, pg=parallel_context.tp_pg, split_config=split_config)
     sharded_info = param.get_sharded_info()
+    checkpoint_engine = create_checkpoint_engine_class(CheckpointingEngineType.TORCH)
     metadata = TensorMetadata(
-        version=CHECKPOINT_VERSION,
+        version=checkpoint_engine.CHECKPOINT_VERSION,
         local_global_slices_pairs=sharded_info.local_global_slices_pairs,
         unsharded_shape=sharded_info.unsharded_shape,
     )

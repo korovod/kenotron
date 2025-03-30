@@ -49,7 +49,7 @@ def save_weights(
     for name, param_or_buffer in tqdm(model.state_dict().items(), desc="Saving weights"):
 
         # exp_rank=0 saves all weights whereas exp_rank>0 save only MLP weights
-        if dist.get_rank(parallel_context.expert_pg) != 0:
+        if dist.get_rank(parallel_context.ep_pg) != 0:
             if "experts" not in name:
                 continue
 

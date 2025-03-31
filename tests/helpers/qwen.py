@@ -1,4 +1,5 @@
 import torch
+
 from nanotron.config import (
     AdamWOptimizerArgs,
     AllForwardAllBackwardPipelineEngine,
@@ -106,7 +107,6 @@ def get_qwen_training_config(model_config: ModelArgs):
 def create_qwen_from_config(
     model_config: Qwen2Config, device: torch.device, parallel_context: ParallelContext
 ) -> Qwen2ForTraining:
-
     """
     Creates and returns a nanotron model.
     If `model_config` is None, then `checkpoint_path` must be set, in which case

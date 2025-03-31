@@ -118,26 +118,6 @@ class Qwen2Attention(nn.Module):
         self.hidden_size = config.hidden_size
         self.tp_pg_size = tp_pg.size()
 
-        assert (
-            config.num_attention_heads % tp_pg.size() == 0
-        ), f"Number of attention heads ({config.num_attention_heads}) must be divisible by TP size ({tp_pg.size()})."
-        try:
-            assert (
-                config.num_key_value_heads % tp_pg.size() == 0
-            ), f"Number of key/value heads ({config.num_key_value_heads}) must be divisible by TP size ({tp_pg.size()})."
-        except AttributeError:
-            log_rank(
-                "WARNING: num_key_value_heads not defined, assuming it is equal to num_attention_heads",
-                logger=logger,
-                level=logging.WARNING,
-                rank=0,
-            )
-            # If num_key_value_heads is not defined, we assume that it is equal to num_attention_heads
-            config.num_key_value_heads = config.num_attention_heads
-        assert (
-            config.num_attention_heads % config.num_key_value_heads == 0
-        ), f"Number of attention heads ({config.num_attention_heads}) must be divisible by number of key/value heads ({config.num_key_value_heads})."
-
         # Head configuration
         self.num_heads = config.num_attention_heads
         self.local_num_heads = self.num_heads // self.tp_pg_size
@@ -637,9 +617,11 @@ class Qwen2ForTraining(NanotronModel):
             initialized_parameters.add(full_param_name)
 
         assert initialized_parameters == {
-            param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
-            if param.is_tied
-            else name
+            (
+                param.get_tied_info().get_full_name_from_module_id_to_prefix(module_id_to_prefix=module_id_to_prefix)
+                if param.is_tied
+                else name
+            )
             for name, param in model.named_parameters()
         }, f"Somehow the initialized set of parameters don't match:\n - Expected: { {name for name, _ in model.named_parameters()} }\n - Got: {initialized_parameters}"
 

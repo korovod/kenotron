@@ -69,6 +69,7 @@ class LlamaConfig:
     def is_using_mup(self) -> bool:
         return self._is_using_mup
 
+
 @dataclass
 class Qwen2Config:
     """Configuration for a QWEN2 model

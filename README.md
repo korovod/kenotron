@@ -5,12 +5,13 @@
         <a href="#installation">Installation</a> •
         <a href="#quick-start">Quick Start</a> •
         <a href="#features">Features</a> •
+        <a href="#models">Models</a> •
         <a href="CONTRIBUTING.md">Contributing</a>
     <p>
 </h4>
 
 <h3 align="center">
-<p>Pretraining models made easy
+<p>Pretraining & finetuning models made easy
 </h3>
 
 
@@ -115,7 +116,7 @@ And we have on our roadmap:
 The following models are currently supported:
 
 - Mistral 7B
-- Qwen
+- Qwen2
 - Llama 3.2
 - Llama 3.1
 - StarCoder2

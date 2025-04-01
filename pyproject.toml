@@ -7,6 +7,7 @@ authors = [
     {name = "Thomas Wang", email="thomas.wang@huggingface.co"},
     {name = "Kunhao Zheng", email="kunhao@huggingface.co"},
     {name = "Thomas Wolf", email="thomas@huggingface.co"},
+    {name = "Thomas Bouvier", email="contact@thomas-bouvier.io"},
 ]
 readme = "README.md"
 requires-python = "~=3.10"
@@ -14,7 +15,8 @@ classifiers = [
     "Topic :: Software Development"
 ]
 dependencies = [
-    "torch>=1.13.1",
+    "torch>=2.0.0",
+    "transformers>=4.48.0",
     "pyyaml",
     "numpy<2",
     "packaging",
@@ -22,6 +24,7 @@ dependencies = [
     "dacite",
     "tqdm",
     "datasets",
+    "wandb",
 ]
 
 [tool.setuptools.packages.find]
@@ -45,13 +48,12 @@ test = [
 ]
 
 fast-modeling = [
-    "flash-attn>=2.5.0,<2.7.0",
+    "flash-attn>=2.7.0",
 ]
 
 nanosets = [
-     "transformers",
-     "datatrove[io,processing]@git+https://github.com/huggingface/datatrove",
-     "numba",
+    "datatrove[io,processing]@git+https://github.com/huggingface/datatrove",
+    "numba",
 ]
 
 s3 = [

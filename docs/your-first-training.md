@@ -25,7 +25,7 @@ Nanotron uses YAML configuration files to define training parameters. You can ei
 
 Creating a config with Python offers more flexibility and allows for programmatic configuration generation. Here's how:
 
-1. Create a Python script similar to [`examples/llama/config_tiny_llama.py`](examples/llama/config_tiny_llama.py):
+1. Create a Python script similar to [`examples/llama/config_tiny_llama.py`](/examples/llama/config_tiny_llama.py):
 
 2. Run the Python script to generate the YAML config:
 
@@ -67,7 +67,7 @@ Where:
 
 ## Using a Custom Dataloader
 
-If you want to use your own dataset instead of the built-in Hugging Face datasets support, you can create a custom dataloader:
+If you want to use your own dataset instead of the built-in HuggingFace datasets support, you can create a custom dataloader:
 
 1. Set your dataset configuration to `null`:
    ```yaml
@@ -85,10 +85,8 @@ For detailed instructions, refer to `examples/custom-dataloader/README.md`.
 
 ## Multi-node Training
 
-Coming soon.
+Check out the [Multi-node Training](multi-node-training.md) guide for more information.
 
 ## Troubleshooting
 
 If you encounter issues with token sizes in your dataloader, ensure that your tokens do not exceed the model's vocabulary size. This is a common source of errors in training.
-
-For more help, check the [Troubleshooting](../README.md#troubleshooting) section in the main README.

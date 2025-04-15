@@ -56,7 +56,7 @@ A good starting point is to understand the memory usage from model configuration
 
 The following command will train a tiny Llama model on a single node with 8 GPUs. The model will be saved in the `checkpoints` directory as specified in the config file.
 ```bash
-CUDA_DEVICE_MAX_CONNECTIONS=1 python -m torch.distributed.run --nproc_per_node=8 run_train.py --config-file examples/config_tiny_llama.yaml
+CUDA_DEVICE_MAX_CONNECTIONS=1 python -m torch.distributed.run --nproc_per_node=8 run_train.py --config-file examples/llama/config_tiny_llama.yaml
 ```
 
 For detailed instructions on training your first model, check out our [Your First Training guide](docs/your-first-training.md).
@@ -84,7 +84,7 @@ To debug with VSCode, add the following configuration to your `launch.json` file
     "args": [
         "--nproc_per_node=2",
         "run_train.py",
-        "--config-file=examples/config_tiny_llama.yaml", // or use examples/config_tiny_llama.py to generate your own config
+        "--config-file=examples/llama/config_tiny_llama.yaml", // or use examples/config_tiny_llama.py to generate your own config
     ],
     "env": {
         // "NANOTRON_BENCHMARK": "1", // enable to benchmark your training for a couple of steps

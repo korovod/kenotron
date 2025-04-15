@@ -25,7 +25,7 @@ Nanotron uses YAML configuration files to define training parameters. You can ei
 
 Creating a config with Python offers more flexibility and allows for programmatic configuration generation. Here's how:
 
-1. Create a Python script similar to [`examples/config_tiny_llama.py`](examples/config_tiny_llama.py):
+1. Create a Python script similar to [`examples/llama/config_tiny_llama.py`](examples/llama/config_tiny_llama.py):
 
 2. Run the Python script to generate the YAML config:
 
@@ -39,17 +39,17 @@ You can also use one of the provided example configurations directly, such as `e
 
 ### Step 2: Running the Training
 
-Once you have your configuration file ready, you can start training using `torchrun`:
+Once you have your configuration file ready, you can start training using `python -m torch.distributed.run`:
 
 ```bash
-CUDA_DEVICE_MAX_CONNECTIONS=1 torchrun --nproc_per_node=8 run_train.py --config-file examples/config_tiny_llama.yaml
+CUDA_DEVICE_MAX_CONNECTIONS=1 python -m torch.distributed.run --nproc_per_node=8 run_train.py --config-file examples/llama/config_tiny_llama.yaml
 ```
 
 Where:
 - `CUDA_DEVICE_MAX_CONNECTIONS=1`: Important environment variable for some distributed operations
 - `--nproc_per_node=8`: Specifies the number of processes (GPUs) you want to use. Make sure this matches DPxTPxPP parallelism sizes.
 - `run_train.py`: Main training script
-- `--config-file examples/config_tiny_llama.yaml`: Path to your configuration file
+- `--config-file examples/llama/config_tiny_llama.yaml`: Path to your configuration file
 
 ### Additional Configuration Notes
 

@@ -64,14 +64,14 @@ So each rank computes the full output using the locally gathered X and its shard
 
 #### Tied Linear
 
-Q: Why does Nanotron have only a single rank save tied linear weights instead of all ranks?
+Q: Why does Kénotron have only a single rank save tied linear weights instead of all ranks?
 
-A: Tied linear weights are replicated across ranks, meaning all ranks hold the same weight values. Having every rank save the tied weight would result in the same weight being saved multiple times redundantly. So Nanotron designates only one rank (such as rank 0), to save the weight to avoid duplicating the same weight in the checkpoint.
+A: Tied linear weights are replicated across ranks, meaning all ranks hold the same weight values. Having every rank save the tied weight would result in the same weight being saved multiple times redundantly. So Kénotron designates only one rank (such as rank 0), to save the weight to avoid duplicating the same weight in the checkpoint.
 
 
-Q: How does Nanotron detect tied parameters?
+Q: How does Kénotron detect tied parameters?
 
-A: Nanotron has a base model class called NanotronModel. NanotronModel class implements a common method for accessing tied parameters (called .get_tied_parameters()) When initializing the model, Trainer calls this method to get a list of parameter names that should be tied.
+A: Kénotron has a base model class called NanotronModel. NanotronModel class implements a common method for accessing tied parameters (called .get_tied_parameters()) When initializing the model, Trainer calls this method to get a list of parameter names that should be tied.
 For example, for a goose model, it may return ["lm_head.weight", "word_embeddings.weight"] indicating the lm head weight and word embedding weight should be tied.
 
 Q: How does a tied linear layer differ from a regular parallel linear layer in nanotron?
@@ -98,7 +98,7 @@ A: Tied linear, tensor parallel linear, and async tensor parallel linear
 
 ### 2. Pipeline Parallelism
 
-Q: What are the four core components in Nanotron’s pipeline parallelism?
+Q: What are the four core components in Kénotron’s pipeline parallelism?
 
 A:
 + PipelineBlock: Contains model computation split up over devices.
@@ -120,7 +120,7 @@ A: So TensorPointers allow pipeline stages to represent tensors produced on othe
 The TensorPointers allow us to queue up a whole batch of communications that will happen later, instead of blocking and communicating each tensor as it is needed.
 
 
-Q: How do TensorPointers interact with other components in Nanotron? (4 steps)
+Q: How do TensorPointers interact with other components in Kénotron? (4 steps)
 
 A: TensorPointer is used to represent tensors that are not locally available on the current process. It contains metadata about which process rank actually holds the real tensor data.
 
@@ -132,7 +132,7 @@ A: TensorPointer is used to represent tensors that are not locally available on 
 Similarly, if Block B produces an output Y that the next Block C on rank 2 needs, it will return Y wrapped in a TensorPointer pointing to rank 1.
 
 
-Q: In the forward pass, how do the four core components in Nanotron's pipeline parallelism work together? (5 steps)
+Q: In the forward pass, how do the four core components in Kénotron's pipeline parallelism work together? (5 steps)
 
 A:
 - Step 1: PipelineEngine coordinates executing the PipelineBlocks for each microbatch.
@@ -142,7 +142,7 @@ A:
 - Step 5: PipelineBlockB retrieves x from PipelineBatchState's buffer and continues its computation.
 
 
-Q: What are the three core components of Nanotron's P2P communication?
+Q: What are the three core components of Kénotron's P2P communication?
 
 A:
 - P2P class: Handles sending and receiving tensors between ranks.
@@ -181,7 +181,7 @@ For example, say PipelineBlockA produces output X and is assigned to pipeline ra
 + But when running on rank 1 or 3, PipelineBlockA will return a TensorPointer to rank 2 rather than the actual Tensor X data.
 
 
-Q: In 3D parallelism, how does Nanotron calculate the overall loss when each microbatch has a different loss value?
+Q: In 3D parallelism, how does Kénotron calculate the overall loss when each microbatch has a different loss value?
 
 A:
 - Step 1: Each microbatch has its own loss value
@@ -205,7 +205,7 @@ Concrete example: pp_size = 8, target_pp_ranks = [0, 4, 7]. This will build the 
 
 #### Loading data in 3D parallelism
 
-Q: In 3D parallelism, how does Nanotron sample training data for model replicas? (2 steps)
+Q: In 3D parallelism, how does Kénotron sample training data for model replicas? (2 steps)
 
 A: For example, with 2 devices, 4 microbatch size, and 100 samples:
 - Step 1: It first divides the full dataset into equal chunks, one chunk per GPU.
@@ -222,9 +222,9 @@ A: For example, with 2 devices, 4 microbatch size, and 100 samples:
     + Device 1 samples [9, 11, 13, 15]
 
 
-Q: In the Nanotron dataloader, why are some tensor values replaced with TensorPointers?
+Q: In the Kénotron dataloader, why are some tensor values replaced with TensorPointers?
 
-A: Dataloader is designed to work with Nanotron's pipeline parallelism. Certain tensors like the input ids and attention mask are only needed by the first pipeline stage. Other ranks don't need the actual tensors - a TensorPointer is just a placeholder.
+A: Dataloader is designed to work with Kénotron's pipeline parallelism. Certain tensors like the input ids and attention mask are only needed by the first pipeline stage. Other ranks don't need the actual tensors - a TensorPointer is just a placeholder.
 
 For example, say rank 2 is where the model input is located. Dataloader will return:
 + Rank 2: {"input_ids": <actual tensor>}
@@ -256,12 +256,12 @@ A: For example, with 2 GPUs, 4 microbatch size, and 8 samples:
 
 ### 3. Distributed Serialization
 
-Q: What are the five things saved in a Nanotron checkpoint?
+Q: What are the five things saved in a Kénotron checkpoint?
 
 A: Model weights, optimizer state, learning rate scheduler, random number generator state, and any other misc metadata required for restoring sharded weights
 
 
-Q: What are the key differences when Nanotron saves the weights for the 3 types of parameters?
+Q: What are the key differences when Kénotron saves the weights for the 3 types of parameters?
 
 A:
 + Regular parameters: Just directly save the full tensor normally.
@@ -269,13 +269,13 @@ A:
 + Tied parameters: Only a rank in the tied group saves the weight.
 
 
-Q: How does Nanotron reconstruct the full original unsharded tensor from the shards when loading a checkpoint?
+Q: How does Kénotron reconstruct the full original unsharded tensor from the shards when loading a checkpoint?
 
-A: When saving a sharded weight, Nanotron stores metadata about how the shards map to the original tensor. This includes:
+A: When saving a sharded weight, Kénotron stores metadata about how the shards map to the original tensor. This includes:
 
 Slices mapping info - Maps each shard's slice of the tensor to the corresponding slice in the original unsharded tensor. Like shard 1 covers unsharded tensor indices 0-50, etc.
 
-During loading, Nanotron uses this mapping to copy each shard into the right location in the unsharded tensor to reconstruct it.
+During loading, Kénotron uses this mapping to copy each shard into the right location in the unsharded tensor to reconstruct it.
 
 - Step 1: Orig tensor A: [A1][A2][A3]
 - Step 2: Checkpoint shards: A1 A2 A3
@@ -285,12 +285,12 @@ During loading, Nanotron uses this mapping to copy each shard into the right loc
     + A3 -> copy to indices 101-150 of A
 
 
-Q: What are the three types of parameters that Nanotron handles when saving checkpoints?
+Q: What are the three types of parameters that Kénotron handles when saving checkpoints?
 
 A: Regular parameters, sharded parameters, tied/replicated parameters
 
 
-Q: How does Nanotron ensure all ranks start with the same initial random state for determinism? (3 steps)
+Q: How does Kénotron ensure all ranks start with the same initial random state for determinism? (3 steps)
 
 A:
 - Step 1: Rank 0 generates the initial state by seeding the RNG and grabbing the state tensor.
@@ -301,12 +301,12 @@ A:
 
 #### Trainer
 
-Q: What's the main idea behind Nanotron’s model initialization?
+Q: What's the main idea behind Kénotron’s model initialization?
 
-A: The main idea is to initialize models directly on the device and datatype we want by overriding PyTorch's default initialization. For example, by default PyTorch may initialize weights on CPU and in fp32. Nanotron overrides this so we can initialize directly in target precision format on GPUs from the start.
+A: The main idea is to initialize models directly on the device and datatype we want by overriding PyTorch's default initialization. For example, by default PyTorch may initialize weights on CPU and in fp32. Kénotron overrides this so we can initialize directly in target precision format on GPUs from the start.
 
 
-Q: How does Nanotron’s model initialization context manager work? (3 steps)
+Q: How does Kénotron’s model initialization context manager work? (3 steps)
 
 A:
 - Step 1: Enter context: Override nn.Module register methods and tensor creation functions
@@ -314,20 +314,20 @@ A:
 - Step 3: Exit context: Restore original nn.Module methods and tensor creation functions
 
 
-Q: Which two nn.Module methods does Nanotron override to implement its model initialization context manager? Explain
+Q: Which two nn.Module methods does Kénotron override to implement its model initialization context manager? Explain
 
-A: Nanotron overrides nn.Module.register_parameter() and nn.Module.register_buffer() which are called when modules register parameters and buffers during initialization.
+A: Kénotron overrides nn.Module.register_parameter() and nn.Module.register_buffer() which are called when modules register parameters and buffers during initialization.
 
 
-Q: What does kill switch do in Nanotron?
+Q: What does kill switch do in Kénotron?
 
 A: Kill switch is a file that the trainer periodically checks during training. If the kill switch file is detected, Trainer will:
 + Step 1: Save a checkpoint
 + Step 2: Exit training gracefully
 
-Q: Why does Nanotron have the custom initialization context manager instead of just using module.to() to move models to the target device?
+Q: Why does Kénotron have the custom initialization context manager instead of just using module.to() to move models to the target device?
 
-A: module.to() moves existing tensors to a new device. Nanotron's custom initialization context manager initializes tensors directly on the target device to begin with. For example, if we want mixed precision on GPU from the start, the context manager will initialize weights in fp16 on the GPU, instead of initializing in fp32 on CPU then moving.
+A: module.to() moves existing tensors to a new device. Kénotron's custom initialization context manager initializes tensors directly on the target device to begin with. For example, if we want mixed precision on GPU from the start, the context manager will initialize weights in fp16 on the GPU, instead of initializing in fp32 on CPU then moving.
 
 
 Q: In FP16 training, how does nanotron updates in the accumulated FP32 gradients when each parameter has an FP16 gradient? (4 steps)
@@ -342,7 +342,7 @@ A:
 #### Model Initialization
 
 
-Q: In Nanotron, how does Trainer initialize a model from scratch using 3D parallelism? (5 steps)
+Q: In Kénotron, how does Trainer initialize a model from scratch using 3D parallelism? (5 steps)
 
 A:
 - Step 1: Create an instance of the model
@@ -352,7 +352,7 @@ A:
 - Step 5: Sync tied parameters across their tied groups with all_reduce
 
 
-Q: What is the high-level flow of Nanotron's training loop? (3 steps) (ignore schedulers, logging…)
+Q: What is the high-level flow of Kénotron's training loop? (3 steps) (ignore schedulers, logging…)
 
 A:
 - Step 1: Do a training step - run forward/backward pass through the model pipeline.
@@ -360,7 +360,7 @@ A:
 - Step 3: Save checkpoint if current step matches interval.
 
 
-Q: In 3D parallelism, how does Nanotron calculate the total number of parameters of a replicas? (2 steps)
+Q: In 3D parallelism, how does Kénotron calculate the total number of parameters of a replicas? (2 steps)
 
 A:
 - Step 1: Sum the parameters within each pipeline stage (across tensor parallelism) ⇒ The total params for that stage.
@@ -371,7 +371,7 @@ A:
     Total params = Stage 1 + Stage 2 = (10+15) + (20+25) = 35 + 45 = 70
 
 
-Q: Why does Nanotron need a kill switch to terminate training? Can't we just Ctrl-C or cancel the job?
+Q: Why does Kénotron need a kill switch to terminate training? Can't we just Ctrl-C or cancel the job?
 
 A: Kill switch provides a graceful way to terminate training without losing progress:
 + Ctrl-C stops the process immediately, risking corrupted checkpoints.
@@ -389,7 +389,7 @@ The first all-reduce makes
 but not Embedding A1 == LM Head A1.The second all-reduce syncs Embedding A1 and LM Head A1, and Embedding A2 and LM Head A2.
 
 
-Q: Why does Nanotron issue an all-reduce across data parallelism dimension when initializing a model from scratch?
+Q: Why does Kénotron issue an all-reduce across data parallelism dimension when initializing a model from scratch?
 
 A: When initializing a model randomly, each replica (data parallel rank) can end up with different initial values due to randomness. The all-reduce (or an equivalent operation) syncs up these initial values across data parallelism, so each replica starts with the same initial weights.
 For example, with 2 data parallel ranks:
@@ -398,7 +398,7 @@ For example, with 2 data parallel ranks:
 After all-reduce, both will have the same initialized weights, say [0.25, 0.2, 0.35].
 
 
-Q: What are the 3 pretraining samplers in Nanotron?
+Q: What are the 3 pretraining samplers in Kénotron?
 
 A:
 - Sequential sampler: Walks through each GPU's data shard sequentially

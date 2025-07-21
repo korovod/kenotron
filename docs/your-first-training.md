@@ -1,13 +1,13 @@
-# Your First Training with Nanotron
+# Your First Training with Kénotron
 
-This guide will walk you through the necessary steps to train your first model with Nanotron, a high-performance library for pretraining transformer models.
+This guide will walk you through the necessary steps to train your first model with Kénotron, a high-performance library for pretraining transformer models.
 
 ## Prerequisites
 
 Before you begin, make sure you have:
 - Python 3.10 or later (but less than 3.12)
 - CUDA-enabled GPU(s)
-- Nanotron installed (see [Installation](../README.md#installation))
+- Kénotron installed (see [Installation](../README.md#installation))
 
 ## Single Node Training
 
@@ -17,7 +17,7 @@ Training a model on a single node involves two main steps:
 
 ### Step 1: Creating a Configuration
 
-Nanotron uses YAML configuration files to define training parameters. You can either:
+Kénotron uses YAML configuration files to define training parameters. You can either:
 - Use an existing YAML config directly
 - Generate a YAML config from a Python script
 

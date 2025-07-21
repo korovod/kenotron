@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# How to contribute to 🤗 Nanotron?
+# How to contribute to 🤗 Kénotron?
 
 Everyone is welcome to contribute, and we value everybody's contribution. Code
 is thus not the only way to help the community. Answering questions, helping
@@ -43,7 +43,7 @@ feedback.
 
 ### Did you find a bug?
 
-The 🤗 Nanotron library is robust and reliable thanks to the users who notify us of
+The 🤗 Kénotron library is robust and reliable thanks to the users who notify us of
 the problems they encounter. So thank you for reporting an issue.
 
 First, we would really appreciate it if you could **make sure the bug was not
@@ -54,7 +54,7 @@ Did not find it? :( So we can act quickly on it, please follow these steps:
 * Include your **OS type and version**, the versions of **Python** and **PyTorch**.
 * A short, self-contained, code snippet that allows us to reproduce the bug in
   less than 30s;
-* Provide your Nanotron configuration used for the run;
+* Provide your Kénotron configuration used for the run;
 * Describe the expected behavior and the actual behavior;
 
 ### Do you want a new feature?
@@ -83,7 +83,7 @@ issues to make sure that nobody is already working on the same thing. If you are
 unsure, it is always a good idea to open an issue to get some feedback.
 
 You will need basic `git` proficiency to be able to contribute to
-🤗 Nanotron. `git` is not the easiest tool to use but it has the greatest
+🤗 Kénotron. `git` is not the easiest tool to use but it has the greatest
 manual. Type `git --help` in a shell and enjoy. If you prefer books, [Pro
 Git](https://git-scm.com/book/en/v2) is a very good reference.
 
@@ -130,7 +130,7 @@ Follow these steps to start contributing:
    $ pre-commit install
    ```
 
-   (If Nanotron was already installed in the virtual environment, remove
+   (If Kénotron was already installed in the virtual environment, remove
    it with `uv pip uninstall nanotron` before reinstalling it in editable
    mode with the `-e` flag.)
 

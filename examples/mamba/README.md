@@ -4,7 +4,7 @@ library_name: nanotron
 
 # Mamba
 
-Modeling code for Mamba to use with [Nanotron](https://github.com/huggingface/nanotron/)
+Modeling code for Mamba to use with [Kénotron](https://github.com/huggingface/nanotron/)
 
 ## 🚀 Quickstart
 

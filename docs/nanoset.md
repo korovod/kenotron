@@ -1,7 +1,7 @@
 # Nanosets
-Nanotron incorporates [`Nanosets`](../src/nanotron/data/nanoset.py), a dataset for processing tokenized documents with [`datatrove`](https://github.com/huggingface/datatrove). They allow reading tokens from one or multiple datasets and even specifying the weight of each dataset when building batches.
+Kénotron incorporates [`Nanosets`](../src/nanotron/data/nanoset.py), a dataset for processing tokenized documents with [`datatrove`](https://github.com/huggingface/datatrove). They allow reading tokens from one or multiple datasets and even specifying the weight of each dataset when building batches.
 ## Install
-To use `Nanosets`, it's necessary to install Nanotron with the `nanosets` flavor.
+To use `Nanosets`, it's necessary to install Kénotron with the `nanosets` flavor.
 ```
 pip install nanotron[nanosets]
 ```

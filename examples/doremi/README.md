@@ -37,7 +37,7 @@ CUDA_DEVICE_MAX_CONNECTIONS=1 torchrun --nproc_per_node=4 examples/doremi/train_
 CUDA_DEVICE_MAX_CONNECTIONS=1 torchrun --nproc_per_node=4 examples/doremi/train_doremi.py --config-file examples/doremi/configs/config_280m_llama_proxy.yaml
 ```
 
-- Step 3: Nanotron saves the domain weights in the model checkpoint. Now, calculate the optimal domain weights by averaging the domain weights across all training steps from step 1: ˉα=1T∑Ti=1αt\bar{\alpha}=\frac{1}{T} \sum_{i=1}^T \alpha_t.
+- Step 3: Kénotron saves the domain weights in the model checkpoint. Now, calculate the optimal domain weights by averaging the domain weights across all training steps from step 1: ˉα=1T∑Ti=1αt\bar{\alpha}=\frac{1}{T} \sum_{i=1}^T \alpha_t.
 
 
 ```python

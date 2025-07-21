@@ -1,4 +1,4 @@
-<h1 align="center">⚡️ Nanotron</h1>
+<h1 align="center">⚡️ Kénotron</h1>
 
 <h4 align="center">
     <p>
@@ -14,15 +14,15 @@
 </h3>
 
 
-Nanotron is a library for pretraining transformer models. It provides a simple and flexible API to pretrain models on custom datasets. Nanotron is designed to be easy to use, fast, and scalable. It is built with the following principles in mind:
+Kénotron is a library for pretraining transformer models. It provides a simple and flexible API to pretrain models on custom datasets. Kénotron is designed to be easy to use, fast, and scalable. It is built with the following principles in mind:
 
-- **Simplicity**: Nanotron is designed to be easy to use. It provides a simple and flexible API to pretrain models on custom datasets.
-- **Scalability**: Nanotron uses the latest techniques to train models more efficiently at scale.
+- **Simplicity**: Kénotron is designed to be easy to use. It provides a simple and flexible API to pretrain models on custom datasets.
+- **Scalability**: Kénotron uses the latest techniques to train models more efficiently at scale.
 - **Speed**: This version of Nanotron focuses on HPC-oriented optimizations, typically made available via C++ extensions.
 
 ## Installation
 
-We recommend using [Spack](https://spack.io/) to install this version of Nanotron.
+We recommend using [Spack](https://spack.io/) to install Kénotron.
 
 ```bash
 git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
@@ -46,7 +46,7 @@ To install a C++ extension, simply use the corresponding Spack variant:
 
 ## Quick Start
 
-First, have a look at the **[Ultrascale Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)**, a comprehensive guide to efficiently scale LLM training with Nanotron.
+First, have a look at the **[Ultrascale Playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)**, a comprehensive guide to efficiently scale LLM training with Nanotron. Everything in this guide applies to Kénotron.
 
 ### Predicting the memory that you will need
 
@@ -55,6 +55,7 @@ A good starting point is to understand the memory usage from model configuration
 ### Training a tiny Llama model
 
 The following command will train a tiny Llama model on a single node with 8 GPUs. The model will be saved in the `checkpoints` directory as specified in the config file.
+
 ```bash
 CUDA_DEVICE_MAX_CONNECTIONS=1 python -m torch.distributed.run --nproc_per_node=8 run_train.py --config-file examples/llama/config_tiny_llama.yaml
 ```
@@ -94,7 +95,7 @@ To debug with VSCode, add the following configuration to your `launch.json` file
 },
 ```
 > [!NOTE]
-> For more info check [Debugging Nanotron example (on multiple GPUs)](/examples/contributor-guide/README.md#debugging-nanotron-example-on-multiple-gpus)
+> For more info check [Debugging Kénotron example (on multiple GPUs)](/examples/contributor-guide/README.md#debugging-nanotron-example-on-multiple-gpus)
 
 ### Custom examples
 
@@ -131,13 +132,9 @@ We currently support the following features:
 And we have on our roadmap:
 
 - [ ] Data-parallel checkpointing for reducing I/O pressure
-- [ ] FP8 training
-- [ ] Bucketed ZeRO-1
-- [ ] ZeRO-3 optimizer (a.k.a FSDP)
+- [ ] FSDP
 - [ ] `torch.compile` support
-- [ ] Ring attention
 - [ ] Interleaved 1f1b schedule
-- [ ] Interleaved offloading of ZeRO states
 - [ ] Efficient expert parallelism
 
 ## Models
@@ -153,5 +150,3 @@ The following models are currently supported:
 ## Credits
 
 We thank the Hugging Face team for their work on the [original project](https://github.com/huggingface/nanotron).
-
-We would like to thank everyone working on LLMs, especially those sharing their work openly from which we took great inspiration: Nvidia for `Megatron-LM/apex`, Microsoft for `DeepSpeed`, HazyResearch for `flash-attn`, ANL for `datastates`.

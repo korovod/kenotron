@@ -2,7 +2,7 @@ OpenAI's scaling laws [[link]](https://arxiv.org/abs/2001.08361) in 2020 has sho
 
 
 # How to use Spectral µTransfer
-In your Nanotron configuration, simply set `use_mup` to `true`. Nanotron will automatically determine the right standard deviation and learning rate for each parameter.
+In your Kénotron configuration, simply set `use_mup` to `true`. Kénotron will automatically determine the right standard deviation and learning rate for each parameter.
 
 
 ```diff
@@ -27,7 +27,7 @@ We ran a systematic experiment varying the number of layers from 8 to 32, width 
 
 # On 350m LLaMA
 
-We trained a 350m model with spectral µTransfer and standard parametrization using Nanotron, a global batch size of 1m tokens at a learning rate of 0.001. µTransfer matches the performance of standard parametrization, with a slightly higher training loss of 0.04. [[Experiment Report]](https://api.wandb.ai/links/neuralink/i70nnpu9)
+We trained a 350m model with spectral µTransfer and standard parametrization using Kénotron, a global batch size of 1m tokens at a learning rate of 0.001. µTransfer matches the performance of standard parametrization, with a slightly higher training loss of 0.04. [[Experiment Report]](https://api.wandb.ai/links/neuralink/i70nnpu9)
 
 Please check the directory [[./examples/mup/configs]](/examples/mup/configs) for the configurations we used to reproduce the experiments.
 

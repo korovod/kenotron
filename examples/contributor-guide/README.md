@@ -1,4 +1,4 @@
-# Nanotron contribution guide
+# Kénotron contribution guide
 
 # Rent a GPU on Vastai
 
@@ -48,7 +48,7 @@
     # Add public key to github
     ```
 
-# Debugging Nanotron example (on multiple GPUs)
+# Debugging Kénotron example (on multiple GPUs)
 
 - We will see how to debug a llama with Tensor Parallel = 2
 - Before proceeding any further, I assume you have:

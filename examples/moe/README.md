@@ -4,7 +4,7 @@ library_name: nanotron
 
 # LlaMoE
 
-Modeling code for LlaMoE to use with [Nanotron](https://github.com/huggingface/nanotron/)
+Modeling code for LlaMoE to use with [Kénotron](https://github.com/huggingface/nanotron/)
 
 ## 🚀 Quickstart
 

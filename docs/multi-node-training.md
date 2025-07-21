@@ -1,10 +1,10 @@
-# Multi-Node Training with Nanotron
+# Multi-Node Training with Kénotron
 
-This guide explains how to train models with Nanotron across multiple compute nodes using Slurm, a popular workload manager for high-performance computing (HPC) clusters.
+This guide explains how to train models with Kénotron across multiple compute nodes using Slurm, a popular workload manager for high-performance computing (HPC) clusters.
 
 ## Using the Slurm Launcher
 
-Nanotron provides a convenient script (`slurm_launcher.py`) to simplify launching multi-node training jobs on Slurm clusters. This script handles configuration generation, resource allocation, and job submission in one step.
+Kénotron provides a convenient script (`slurm_launcher.py`) to simplify launching multi-node training jobs on Slurm clusters. This script handles configuration generation, resource allocation, and job submission in one step.
 
 ### Basic Usage
 
@@ -13,7 +13,7 @@ python slurm_launcher.py --run_name my_experiment --nodes 4 --model_size base
 ```
 
 This will:
-1. Generate a Nanotron configuration file based on your parameters
+1. Generate a Kénotron configuration file based on your parameters
 2. Create a Slurm job script with appropriate settings
 3. Submit the job to the Slurm scheduler
 4. Save everything needed for reproducibility
@@ -162,7 +162,7 @@ python slurm_launcher.py \
 
 If you prefer to set up multi-node training manually, follow these steps:
 
-1. Create a Nanotron configuration file (YAML or Python)
+1. Create a Kénotron configuration file (YAML or Python)
 2. Set appropriate parallelism parameters:
    ```python
    parallelism = ParallelismArgs(
@@ -241,4 +241,4 @@ If you prefer to set up multi-node training manually, follow these steps:
    - Increase `--time_limit` parameter
    - Set appropriate checkpointing intervals with `--save_interval`
 
-For more detailed information, refer to the [Nanotron documentation](https://github.com/huggingface/nanotron) and your cluster's specific Slurm documentation.
+For more detailed information, refer to the [Kénotron documentation](https://github.com/huggingface/nanotron) and your cluster's specific Slurm documentation.

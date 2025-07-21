@@ -7,16 +7,17 @@ authors = [
     {name = "Thomas Wang", email="thomas.wang@huggingface.co"},
     {name = "Kunhao Zheng", email="kunhao@huggingface.co"},
     {name = "Thomas Wolf", email="thomas@huggingface.co"},
+    {name = "Thomas Bouvier", email="contact@thomas-bouvier.io"},
 ]
 readme = "README.md"
-requires-python = "~=3.10"
+requires-python = ">=3.11"
 classifiers = [
     "Topic :: Software Development"
 ]
 dependencies = [
-    "torch>=1.13.1",
+    "torch>=2.5.0",
     "pyyaml",
-    "numpy<2",
+    "numpy>=2.1.0",
     "packaging",
     "safetensors",
     "dacite",

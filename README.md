@@ -28,7 +28,7 @@ We recommend using [Spack](https://spack.io/) to install Kénotron.
 git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
 git clone https://github.com/korovod/korovod-spack-packages.git
 cd spack/bin
-./spack repo add korovod-spack-packages
+./spack repo add --name korovod https://github.com/korovod/korovod-spack-packages.git
 ./spack install py-nanotron
 ```
 
@@ -38,11 +38,15 @@ cd spack/bin
 To install a C++ extension, simply use the corresponding Spack variant:
 
 ```bash
-./spack install py-nanotron +py-datastates
+./spack install py-nanotron +datastates +nanosets
 ```
 
-> [!TIP]
-> We log to wandb automatically if it's installed (and the command above will install it). If you don't want to use wandb, you can run `wandb disabled`.
+### Available variants
+
+| Variant | Description | Docs |
+| --- | --- | --- |
+| `+datastates` | Asynchronous checkpointing | [Docs](/examples/datastates/README.md) |
+| `+nanosets` | Use the datatrove library to load data |  |
 
 ## Quick Start
 
@@ -100,7 +104,7 @@ To debug with VSCode, add the following configuration to your `launch.json` file
 ### Custom examples
 
 You can find more examples in the [`/examples`](/examples) directory:
-<!-- Make a table of the examples we support -->
+
 | Example | Description |
 | --- | --- |
 | `custom-dataloader` | Plug a custom dataloader to nanotron |

@@ -42,12 +42,18 @@ To install an extension, simply use the corresponding Spack variant:
 ./spack install py-nanotron +datastates +nanosets
 ```
 
-### Available variants
+Some examples are shipped into Kénotron, with some of them requiring the installation of a Spack variant:
 
-| Variant | Description | Docs |
-| --- | --- | --- |
-| `+datastates` | Asynchronous checkpointing | [Docs](/examples/datastates/README.md) |
-| `+nanosets` | Use the datatrove library to load data |  |
+| Variant | Description | Docs | Spack variant |
+| --- | --- | --- | --- |
+| `datastates` | Asynchronous checkpointing | [Docs](/examples/datastates/README.md) | `py-nanotron +datastates` |
+| `nanosets` | Use the datatrove library to load data | [Docs](./examples/nanosets/README.md)  | `py-nanotron +nanosets` |
+| `custom-dataloader` | Plug a custom dataloader to Kénotron | [Docs](./examples/custom-dataloader/README.md) | `py-nanotron` |
+| `doremi` | Use DoReMi to speed up training | [Docs](./examples/doremi/README.md) | `py-nanotron` |
+| `mamba` | Train an example Mamba model | [Docs](./examples/mamba/README.md) | `py-nanotron` |
+| `moe` | Train an example Mixture-of-Experts (MoE) model | [Docs](./examples/moe/README.md) | `py-nanotron` |
+| `mup` | Use spectral µTransfer to scale up your model | [Docs](./examples/mup/README.md) | `py-nanotron` |
+| `s3` | For automatically uploading checkpoints to S3 | [Docs](./examples/s3/README.md) | `py-nanotron` |
 
 ## Quick Start
 
@@ -75,22 +81,6 @@ For multi-node training with Slurm, see our [Multi-Node Training guide](docs/mul
 python -m torch.distributed.run --nproc_per_node=1 run_generate.py --ckpt-path checkpoints/10/ --tp 1 --pp 1
 # We could set a larger TP for faster generation, and a larger PP in case of very large models.
 ```
-
-### Custom examples
-
-You can find more examples in the [`/examples`](/examples) directory:
-
-| Example | Description |
-| --- | --- |
-| `custom-dataloader` | Plug a custom dataloader to Kénotron |
-| `datatrove` | Use the datatrove library to load data |
-| `doremi` | Use DoReMi to speed up training |
-| `mamba` | Train an example Mamba model |
-| `moe` | Train an example Mixture-of-Experts (MoE) model |
-| `mup` | Use spectral µTransfer to scale up your model |
-| `s3` | For automatically uploading checkpoints to S3 |
-
-We're working on adding more examples soon! Feel free to add a PR to add your own example. 🚀
 
 ## Features
 

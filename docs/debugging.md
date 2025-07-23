@@ -1,11 +1,28 @@
-# Debugging FAQ:
-When debugging you may run into errors of the sort:
+# Debugging
 
-![](image.png)
+## Debugging with VSCode
 
-Don't get overwhelmed by the amount of information in the error message. The final error message is not very informative so we have to scroll a little bit up to find the actual error message. In this case, the error message is:
+To debug with VSCode, add the following configuration to your `launch.json` file:
 
-![](image-2.png)
-
-which is a `ValueError` that says that the model in PP=1 has no gradient. This is a common error when using `torch.nn.parallel.DistributedDataParallel` (DDP) and it means that the model in the pipeline parallelism (PP) rank 1 has no gradient. This can happen if the model is too small and the gradient is not computed for the model. The solution is to increase the number of layers of the model or put a smaller PP size. In this case, the model is `LlamaForTraining` and the model in PP=1 is `LlamaModel`.
-We could also decrease the model's vocab size from 50277 to 256 to help a better partitioning of the pipeline blocks. This will help to avoid the error message above.
+```json
+{
+    "name": "run_train.py",
+    "type": "python",
+    "request": "launch",
+    "program": "torchrun", // or full path to torchrun by running `which torchrun`
+    "console": "integratedTerminal",
+    "justMyCode": false,
+    "args": [
+        "--nproc_per_node=2",
+        "run_train.py",
+        "--config-file=examples/llama/config_tiny_llama.yaml", // or use examples/config_tiny_llama.py to generate your own config
+    ],
+    "env": {
+        // "NANOTRON_BENCHMARK": "1", // enable to benchmark your training for a couple of steps
+        "CUDA_DEVICE_MAX_CONNECTIONS": "1",
+        "WANDB_MODE": "disabled",
+    }
+},
+```
+> [!NOTE]
+> For more info check [Debugging Kénotron example (on multiple GPUs)](/examples/contributor-guide/README.md#debugging-nanotron-example-on-multiple-gpus)

@@ -1,10 +1,10 @@
-## The internals of nanotron
+## The internals of Kénotron
 
 ### 1. Tensor Parallelism
 
 #### Asynchronous Tensor Parallelism
 
-Q: What are the two different tensor parallel linear modes in nanotron?
+Q: What are the two different tensor parallel linear modes in Kénotron?
 
 A: All-reduce and Reduce-scatter
 
@@ -27,7 +27,7 @@ For example with 4 GPUs:
 So each GPU gathers the complete input X from all GPUs.
 
 
-Q: In nanotron, what is the core difference between regular and asynchronous tensor parallel linear layers in terms of computation?
+Q: In Kénotron, what is the core difference between regular and asynchronous tensor parallel linear layers in terms of computation?
 
 A:
 - In regular column parallel, each rank only computes the portion of the output corresponding to its shard of weights. It does not compute the full output matrix.
@@ -74,25 +74,25 @@ Q: How does Kénotron detect tied parameters?
 A: Kénotron has a base model class called NanotronModel. NanotronModel class implements a common method for accessing tied parameters (called .get_tied_parameters()) When initializing the model, Trainer calls this method to get a list of parameter names that should be tied.
 For example, for a goose model, it may return ["lm_head.weight", "word_embeddings.weight"] indicating the lm head weight and word embedding weight should be tied.
 
-Q: How does a tied linear layer differ from a regular parallel linear layer in nanotron?
+Q: How does a tied linear layer differ from a regular parallel linear layer in Kénotron?
 A:
 + In a regular parallel linear layer, the weight matrix is sharded across ranks.
 + In a tied linear layer, the entire weight matrix is replicated on all ranks.
 
 
-Q: What is the difference between a tied parameter and a regular parameter in nanotron?
+Q: What is the difference between a tied parameter and a regular parameter in Kénotron?
 
 A:
-+ Tied parameters in nanotron are parameters that need to have their gradients synchronized (typically summed) across a specific set of ranks during training.
++ Tied parameters in Kénotron are parameters that need to have their gradients synchronized (typically summed) across a specific set of ranks during training.
 + Regular parameters don't have any special synchronization requirements.
 
 
-Q: When would you use tied parameters in a transformer model in nanotron?
+Q: When would you use tied parameters in a transformer model in Kénotron?
 
 A: Tied parameters should be used when the same weights are replicated in multiple layers of the transformer. A common example is tying the weights of the embedding layer and the final linear layer in the language modeling head.
 
 
-Q: What are the different types of linear layers in nanotron and how are they different?
+Q: What are the different types of linear layers in Kénotron and how are they different?
 
 A: Tied linear, tensor parallel linear, and async tensor parallel linear
 
@@ -196,7 +196,7 @@ A: PipelineBlock.rank specifies which pipeline parallel rank the block is assign
 For example, setting a block's rank to 2 means it will run on pipeline rank 2. The block's parameters will be instantiated on rank 2's device, and its forward pass will execute on rank 2.
 
 
-Q: What do target_pp_ranks represent when initializing a nanotron model?
+Q: What do target_pp_ranks represent when initializing a Kénotron model?
 
 A:
 target_pp_ranks specifies which subset of pipeline ranks the model should be built on. By default, the model is built on all pipeline ranks (0 to pp_size-1). But you can pass a custom list like [0, 2, 3] to build the model only on those ranks.
@@ -330,12 +330,12 @@ Q: Why does Kénotron have the custom initialization context manager instead of 
 A: module.to() moves existing tensors to a new device. Kénotron's custom initialization context manager initializes tensors directly on the target device to begin with. For example, if we want mixed precision on GPU from the start, the context manager will initialize weights in fp16 on the GPU, instead of initializing in fp32 on CPU then moving.
 
 
-Q: In FP16 training, how does nanotron updates in the accumulated FP32 gradients when each parameter has an FP16 gradient? (4 steps)
+Q: In FP16 training, how does Kénotron updates in the accumulated FP32 gradients when each parameter has an FP16 gradient? (4 steps)
 
 A:
 - Step 1: Each FP16 parameter has an associated FP32 gradient buffer allocated.
 - Step 2: During backward, the FP16 gradients are accumulated into the FP32 buffer, instead of directly into the .grad attribute.
-- Step 3: Before the optimizer step, nanotron copies the accumulated FP32 gradients into the .grad attribute of the FP32 copy of each parameter that will be updated.
+- Step 3: Before the optimizer step, Kénotron copies the accumulated FP32 gradients into the .grad attribute of the FP32 copy of each parameter that will be updated.
 - Step 4: The optimizer performs the update on the FP32 parameters.
 
 

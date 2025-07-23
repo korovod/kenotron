@@ -10,7 +10,7 @@
 </h4>
 
 <h3 align="center">
-<p>Pretraining models made easy
+    <p>Pretraining models made easy</p>
 </h3>
 
 
@@ -26,16 +26,17 @@ We recommend using [Spack](https://spack.io/) to install Kénotron.
 
 ```bash
 git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
-git clone https://github.com/korovod/korovod-spack-packages.git
 cd spack/bin
 ./spack repo add --name korovod https://github.com/korovod/korovod-spack-packages.git
 ./spack install py-nanotron
 ```
 
+Spack allows you to install a specific version e.g., `py-nanotron@0.4.0` or `py-nanotron@main`.
+
 > [!TIP]
 > It is advised to maintain a proper [Spack environment](https://spack-tutorial.readthedocs.io/en/latest/tutorial_environments.html) to ensure reproducibility.
 
-To install a C++ extension, simply use the corresponding Spack variant:
+To install an extension, simply use the corresponding Spack variant:
 
 ```bash
 ./spack install py-nanotron +datastates +nanosets
@@ -75,39 +76,13 @@ python -m torch.distributed.run --nproc_per_node=1 run_generate.py --ckpt-path c
 # We could set a larger TP for faster generation, and a larger PP in case of very large models.
 ```
 
-### Debugging with VSCode
-To debug with VSCode, add the following configuration to your `launch.json` file:
-
-```json
-{
-    "name": "run_train.py",
-    "type": "python",
-    "request": "launch",
-    "program": "torchrun", // or full path to torchrun by running `which torchrun`
-    "console": "integratedTerminal",
-    "justMyCode": false,
-    "args": [
-        "--nproc_per_node=2",
-        "run_train.py",
-        "--config-file=examples/llama/config_tiny_llama.yaml", // or use examples/config_tiny_llama.py to generate your own config
-    ],
-    "env": {
-        // "NANOTRON_BENCHMARK": "1", // enable to benchmark your training for a couple of steps
-        "CUDA_DEVICE_MAX_CONNECTIONS": "1",
-        "WANDB_MODE": "disabled",
-    }
-},
-```
-> [!NOTE]
-> For more info check [Debugging Kénotron example (on multiple GPUs)](/examples/contributor-guide/README.md#debugging-nanotron-example-on-multiple-gpus)
-
 ### Custom examples
 
 You can find more examples in the [`/examples`](/examples) directory:
 
 | Example | Description |
 | --- | --- |
-| `custom-dataloader` | Plug a custom dataloader to nanotron |
+| `custom-dataloader` | Plug a custom dataloader to Kénotron |
 | `datatrove` | Use the datatrove library to load data |
 | `doremi` | Use DoReMi to speed up training |
 | `mamba` | Train an example Mamba model |

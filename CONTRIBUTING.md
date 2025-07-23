@@ -1,20 +1,4 @@
-<!---
-Copyright 2022 The HuggingFace Team. All rights reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
-
-# How to contribute to 🤗 Kénotron?
+# How to contribute to ⚡️ Kénotron?
 
 Everyone is welcome to contribute, and we value everybody's contribution. Code
 is thus not the only way to help the community. Answering questions, helping
@@ -30,7 +14,8 @@ Whichever way you choose to contribute, please be mindful to respect our
 
 ## You can contribute in so many ways!
 
-Some of the ways you can contribute to nanotron:
+Some of the ways you can contribute to Kénotron:
+
 * Fixing outstanding issues with the existing code;
 * Contributing to the examples or to the documentation;
 * Submitting issues related to bugs or desired new features.
@@ -43,7 +28,7 @@ feedback.
 
 ### Did you find a bug?
 
-The 🤗 Kénotron library is robust and reliable thanks to the users who notify us of
+The Kénotron library is robust and reliable thanks to the users who notify us of
 the problems they encounter. So thank you for reporting an issue.
 
 First, we would really appreciate it if you could **make sure the bug was not
@@ -52,10 +37,9 @@ already reported** (use the search bar on Github under Issues).
 Did not find it? :( So we can act quickly on it, please follow these steps:
 
 * Include your **OS type and version**, the versions of **Python** and **PyTorch**.
-* A short, self-contained, code snippet that allows us to reproduce the bug in
-  less than 30s;
+* A short, self-contained, code snippet that allows us to reproduce the bug in a few minutes;
 * Provide your Kénotron configuration used for the run;
-* Describe the expected behavior and the actual behavior;
+* Describe the 1) expected behavior and 2) the actual behavior;
 
 ### Do you want a new feature?
 
@@ -68,10 +52,16 @@ A good feature request addresses the following points:
   about it!
 * Is it something you worked on and think could benefit the community?
   Awesome! Tell us what problem it solved for you.
+
 2. Write a *full paragraph* describing the feature;
+
 3. Provide a **code snippet** that demonstrates its future use;
-4. In case this is related to a paper, please attach a link;
-5. Attach any additional information (drawings, screenshots, etc.) you think may help.
+
+4. If your feature is related to the implementation of a parallelism technique, make sure to read our [converging guidelines](./docs/converging.md);
+
+5. In case this is related to a paper, please attach a link;
+
+6. Attach any additional information (drawings, screenshots, etc.) you think may help.
 
 If your issue is well written we're already 80% of the way there by the time you
 post it.
@@ -83,13 +73,13 @@ issues to make sure that nobody is already working on the same thing. If you are
 unsure, it is always a good idea to open an issue to get some feedback.
 
 You will need basic `git` proficiency to be able to contribute to
-🤗 Kénotron. `git` is not the easiest tool to use but it has the greatest
+Kénotron. `git` is not the easiest tool to use but it has the greatest
 manual. Type `git --help` in a shell and enjoy. If you prefer books, [Pro
 Git](https://git-scm.com/book/en/v2) is a very good reference.
 
 Follow these steps to start contributing:
 
-1. Fork the [repository](https://github.com/korovod/nanotron) by
+1. Fork the [repository](https://github.com/korovod/kenotron) by
    clicking on the 'Fork' button on the repository's page. This creates a copy of the code
    under your GitHub user account.
 
@@ -98,9 +88,9 @@ Follow these steps to start contributing:
    [information](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository).
 
    ```bash
-   $ git clone git@github.com:<your Github handle>/nanotron.git
-   $ cd nanotron
-   $ git remote add upstream https://github.com/korovod/nanotron.git
+   git clone git@github.com:<your Github handle>/kenotron.git
+   cd kenotron
+   git remote add upstream https://github.com/korovod/kenotron.git
    ```
 
 3. Create a new branch to hold your development changes, and do this for every new PR you work on.
@@ -108,15 +98,15 @@ Follow these steps to start contributing:
    Start by synchronizing your `main` branch with the `upstream/main` branch (more details in the [GitHub Docs](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)):
 
    ```bash
-   $ git checkout main
-   $ git fetch upstream
-   $ git merge upstream/main
+   git checkout main
+   git fetch upstream
+   git merge upstream/main
    ```
 
    Once your `main` branch is synchronized, create a new branch from it:
 
    ```bash
-   $ git checkout -b a-descriptive-name-for-my-changes
+   git checkout -b a-descriptive-name-for-my-changes
    ```
 
    **Do not** work on the `main` branch.
@@ -124,18 +114,15 @@ Follow these steps to start contributing:
 4. Set up a development environment by running the following command in a conda or a virtual environment you've created for working on this library:
 
    ```bash
-   $ uv venv
-   $ uv pip install -e ".[dev]"
-   $ uv pip install -e ".[test]"
-   $ pre-commit install
+   uv venv
+   uv pip install -e ".[dev]"
+   uv pip install -e ".[test]"
+   pre-commit install
    ```
 
    (If Kénotron was already installed in the virtual environment, remove
    it with `uv pip uninstall nanotron` before reinstalling it in editable
    mode with the `-e` flag.)
-
-   Alternatively, if you are using [Visual Studio Code](https://code.visualstudio.com/Download), the fastest way to get set up is by using
-   the provided Dev Container. Documentation on how to get started with dev containers is available [here](https://code.visualstudio.com/docs/remote/containers).
 
 5. Develop the features on your branch.
 
@@ -144,7 +131,7 @@ Follow these steps to start contributing:
    below an explanation regarding the environment variable):
 
    ```bash
-   $ python -m pytest tests/<TEST_TO_RUN>.py
+   python -m pytest tests/<TEST_TO_RUN>.py
    ```
 
    This target is also optimized to only work with files modified by the PR you're working on.
@@ -153,15 +140,15 @@ Follow these steps to start contributing:
    style corrections:
 
    ```bash
-   $ pre-commit run --all-files
+   pre-commit run --all-files
    ```
 
    Once you're happy with your changes, add changed files using `git add` and
    make a commit with `git commit` to record your changes locally:
 
    ```bash
-   $ git add modified_file.py
-   $ git commit
+   git add modified_file.py
+   git commit
    ```
 
    Please write a commit message using the [Conventional Commits guidelines](https://www.conventionalcommits.org/en/v1.0.0/). Ideally, a longer commit body is provided after the short description, providing additional contextual information about the code changes.
@@ -170,14 +157,14 @@ Follow these steps to start contributing:
    repository regularly. This way you can quickly account for changes:
 
    ```bash
-   $ git fetch upstream
-   $ git rebase upstream/main
+   git fetch upstream
+   git rebase upstream/main
    ```
 
    Push the changes to your account using:
 
    ```bash
-   $ git push -u origin a-descriptive-name-for-my-changes
+   git push -u origin a-descriptive-name-for-my-changes
    ```
 
 6. Once you are satisfied (**and the checklist below is happy too**), go to the
@@ -199,8 +186,11 @@ Follow these steps to start contributing:
 3. To indicate a work in progress please prefix the title with `[WIP]`, or mark
    the PR as a draft PR. These are useful to avoid duplicated work, and to differentiate
    it from PRs ready to be merged;
-4. Make sure existing tests pass;
-5. Add high-coverage tests. No quality testing = no merge.
+4. If your work is related to the implementation of a parallelism technique, please report
+   some results to make sure that convergence is preserved, as explained in the
+   [converging guidelines](./docs/converging.md).
+5. Make sure existing tests pass;
+6. Add high-coverage tests. No quality testing = no merge.
 
 See an example of a good PR here: https://github.com/huggingface/nanotron/pull/155
 

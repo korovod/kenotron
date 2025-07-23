@@ -18,7 +18,7 @@ pip install -r requirements.txt
 
 > https://wandb.ai/bouteille/test/reports/Mamba-loss--Vmlldzo2OTgwNDM5
 
-## Bug related to nanotron
+## Bug related to Kénotron
 Encountered the following issue when ran train_mamba.sh:
 ```
 causal_conv1d_cuda.cpython-310-x86_64-linux-gnu.so: undefined symbol: _ZNK3c1017SymbolicShapeMeta18init_is_contiguousEv

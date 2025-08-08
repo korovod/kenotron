@@ -119,3 +119,11 @@ The following models are currently supported:
 ## Credits
 
 We thank the Hugging Face team for their work on the [original project](https://github.com/huggingface/nanotron).
+
+Some related projects are:
+
+- [gpt-neox](https://github.com/EleutherAI/gpt-neox)
+- [torchtitan](https://github.com/pytorch/torchtitan)
+- [DeepSpeed](https://github.com/deepspeedai/DeepSpeed)
+- [Megatron-LM](https://github.com/NVIDIA/Megatron-LM)
+- [lingua](https://github.com/facebookresearch/lingua)
